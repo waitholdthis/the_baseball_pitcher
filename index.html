@@ -1,0 +1,1582 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bullpen Baseline</title>
+<meta name="theme-color" content="#0e1319">
+<meta name="description" content="A pitching workspace for video review, command and velocity tracking, and bullpen planning.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800&family=IBM+Plex+Mono:wght@500;600&family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #0e1319;
+  --panel: #151d26;
+  --inset: #10171f;
+  --line: #2b3745;
+  --text: #f5f1e9;
+  --muted: #abb7c4;
+  --accent: #ffab72;
+  --radius: 18px;
+  --display: "Barlow Condensed", "Arial Narrow", "Segoe UI", sans-serif;
+  --body: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", Consolas, monospace;
+}
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-padding-top: 20px; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.55 var(--body); }
+a { color: var(--accent); text-underline-offset: 4px; }
+p { color: var(--muted); margin: 0 0 12px; max-width: 78ch; }
+p:last-child { margin-bottom: 0; }
+small { color: var(--muted); }
+.skip-link { position: fixed; z-index: 4; top: 10px; left: 10px; padding: 10px 14px; background: var(--text); color: var(--bg); transform: translateY(-150%); }
+.skip-link:focus { transform: none; }
+.app-shell { display: grid; grid-template-columns: 216px minmax(0,1fr); min-height: 100vh; }
+.sidebar { display: flex; flex-direction: column; position: sticky; top: 0; height: 100vh; padding: 28px 16px 18px; border-right: 1px solid var(--line); background: #10171f; }
+.brand { display: flex; gap: 10px; align-items: center; padding: 0 7px 28px; color: var(--text); text-decoration: none; font-size: 18px; letter-spacing: -.04em; white-space: nowrap; }
+.brand strong { color: var(--accent); font-weight: 750; }
+.brand-mark { display: grid; place-items: center; width: 27px; height: 27px; border-radius: 7px; background: var(--accent); color: #24170e; }
+.brand-mark::before { content: ""; width: 11px; height: 11px; border: 2px solid currentColor; transform: rotate(45deg); }
+nav { display: grid; gap: 5px; }
+nav a { color: var(--muted); border: 1px solid transparent; border-radius: 8px; padding: 10px; text-decoration: none; font-weight: 650; font-size: 14px; }
+nav a:hover, nav a[aria-current] { color: var(--text); background: #202b38; border-color: var(--line); }
+nav a[aria-current] { box-shadow: inset 3px 0 var(--accent); }
+.local-label { margin: auto 8px 0; color: var(--muted); font: 12px var(--mono); }
+.local-label::before { content: ""; display: inline-block; width: 7px; height: 7px; margin-right: 8px; border-radius: 50%; background: #9cc6a5; }
+main { width: min(100%, 1380px); min-width: 0; margin: 0 auto; padding: 0 clamp(16px,3vw,42px) 58px; }
+.toolbar { display: flex; justify-content: space-between; gap: 12px; align-items: center; min-height: 72px; }
+.toolbar > span { font-weight: 700; color: var(--muted); }
+.toolbar .row { margin: 0; }
+.toolbar button { min-height: 34px; padding: 6px 10px; font-size: 13px; }
+.hero { position: relative; isolation: isolate; display: grid; align-items: center; overflow: hidden; min-height: 340px; padding: clamp(24px,5vw,64px); background: linear-gradient(115deg,#1b2633 0%,#151e2a 65%,#201c22 100%); border: 1px solid #394351; border-radius: 24px; }
+.hero-copy { position: relative; z-index: 1; max-width: 56%; }
+h1,h2,h3,h4 { line-height: 1.12; }
+h1 { font: 800 clamp(52px,7vw,108px)/.82 var(--display); letter-spacing: -.045em; text-transform: uppercase; margin: 0 0 22px; }
+h1 span { color: var(--accent); }
+.hero p { font-size: clamp(15px,1.7vw,18px); max-width: 32ch; color: #d7dee6; margin: 0 0 18px; }
+.hero .row { margin-bottom: 0; }
+.secondary-action { padding: 8px 5px; color: var(--text); font-weight: 650; }
+.field-art { position: absolute; z-index: 0; right: -5%; top: 50%; width: min(55%,540px); aspect-ratio: 1; transform: translateY(-50%); background: radial-gradient(circle,#f69c5e28 0%,transparent 64%); pointer-events: none; }
+.field-rings { position: absolute; inset: 12%; border-radius: 50%; background: repeating-radial-gradient(circle,transparent 0 26px,#d9a8802e 27px 28px); }
+.field-diamond { position: absolute; inset: 30%; transform: rotate(45deg); border: 2px solid #ffa873b0; border-radius: 5px; box-shadow: 0 0 0 12px #ffa87316, inset 0 0 0 14px #ffa87310; }
+.field-diamond::before, .field-diamond::after, .field-mound, .field-home { position: absolute; width: 11px; height: 11px; background: #ffd2b3; box-shadow: 0 0 18px #ffab72aa; }
+.field-diamond::before,.field-diamond::after { content: ""; top: -6px; }
+.field-diamond::before { left: -6px; }
+.field-diamond::after { right: -6px; }
+.field-mound { inset: 49%; border-radius: 50%; }
+.field-home { left: calc(50% - 5px); top: 77%; transform: rotate(45deg); }
+.overview { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); margin: 16px 0 24px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.overview > div { padding: 17px clamp(12px,2vw,23px); min-width: 0; }
+.overview > div + div { border-left: 1px solid var(--line); }
+.overview span { display: block; color: var(--muted); font-size: 13px; }
+.overview strong { display: block; margin-top: 4px; color: var(--text); font: 600 clamp(20px,2.7vw,32px) var(--mono); }
+section,.clip { min-width: 0; margin: 0 0 16px; padding: clamp(16px,2.5vw,28px); background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
+h2 { margin: 0 0 12px; font: 750 clamp(25px,3vw,34px)/1.05 var(--display); letter-spacing: -.025em; }
+h3 { margin: 22px 0 10px; font-size: 18px; }
+h4,.clip h3 { margin: 0 0 10px; overflow-wrap: anywhere; }
+.grid,.metrics { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
+.metrics { grid-template-columns: repeat(3,minmax(0,1fr)); margin: 14px 0; }
+.metric { min-width: 0; background: var(--inset); border: 1px solid var(--line); border-radius: 12px; padding: 13px; }
+.metric strong { display: block; color: var(--accent); font: 600 21px var(--mono); margin-top: 4px; }
+.metric p strong { display: inline; font: 700 1em var(--body); margin-right: 5px; }
+.row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin: 10px 0; }
+.fields { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px; margin: 13px 0; align-items: end; }
+#pitcher-profile .fields { grid-template-columns: repeat(3,minmax(0,1fr)); }
+.fields > .row { margin: 0; }
+label { display: grid; gap: 5px; min-width: 0; color: var(--muted); font-size: 14px; font-weight: 620; }
+button,select,input,textarea { min-width: 0; min-height: 41px; color: inherit; background: var(--inset); border: 1px solid var(--line); border-radius: 8px; padding: 8px 10px; font: inherit; }
+select,input,textarea { width: 100%; color: var(--text); }
+input::placeholder,textarea::placeholder { color: #8998a8; opacity: 1; }
+input::file-selector-button { background: #273446; color: var(--text); border: 0; border-radius: 5px; margin-right: 10px; padding: 6px 9px; cursor: pointer; }
+button { font-weight: 650; cursor: pointer; transition: background-color .15s,border-color .15s; }
+button:hover:not(:disabled) { background: #263443; border-color: #71859a; }
+button.primary { background: var(--accent); border-color: var(--accent); color: #25180f; font-weight: 780; }
+button.primary:hover:not(:disabled) { background: #ffbf96; border-color: #ffbf96; }
+button:disabled { opacity: .42; cursor: default; }
+:where(button,a,input,select,textarea,summary):focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+textarea { resize: vertical; min-height: 80px; }
+output { display: block; color: var(--accent); }
+output:not(:empty) { margin: 10px 0; }
+.model-settings { border: 1px solid var(--line); background: var(--inset); border-radius: 10px; padding: 12px; }
+summary { cursor: pointer; color: var(--text); font-weight: 650; }
+details[open] summary { margin-bottom: 8px; }
+.video-stage { position: relative; }
+video { display: block; width: 100%; aspect-ratio: 16/9; background: #080c11; border-radius: 9px; object-fit: contain; }
+.pose-overlay { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.tracking { font-size: 14px; }
+.table-scroll { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; text-align: left; white-space: nowrap; }
+th,td { padding: 10px; border-bottom: 1px solid var(--line); }
+th { color: var(--muted); font-size: 13px; }
+tbody th { color: var(--text); font-weight: 600; }
+tbody tr:hover { background: #192431; }
+td button { min-height: 32px; margin-right: 4px; padding: 3px 8px; }
+#recommendation { margin-top: 12px; }
+.trial-result { margin: 12px 0; }
+.trial-result strong { margin-bottom: 8px; font: 750 17px var(--body); }
+.analysis-progress { width: 100%; accent-color: var(--accent); }
+.analysis-measures { margin: 12px 0; padding-left: 20px; }
+@media (max-width: 900px) {
+  .app-shell { display: block; }
+  .sidebar { position: static; height: auto; padding: 12px 16px; border: 0; border-bottom: 1px solid var(--line); }
+  .brand { padding: 0 0 8px; }
+  nav { display: flex; overflow-x: auto; padding: 2px 1px 5px; }
+  nav a { flex: none; padding: 6px 9px; }
+  .local-label { display: none; }
+}
+@media (max-width: 620px) {
+  .hero { min-height: 315px; border-radius: 16px; }
+  .hero-copy { max-width: 100%; }
+  .field-art { width: 75%; opacity: .34; right: -27%; }
+  .toolbar { flex-wrap: wrap; padding: 12px 0; }
+  .overview { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .overview > div:nth-child(odd) { border-left: 0; }
+  .overview > div:nth-child(n+3) { border-top: 1px solid var(--line); }
+  .grid,.metrics,.fields,#pitcher-profile .fields { grid-template-columns: minmax(0,1fr); }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+@media print {
+  html { color-scheme: light; }
+  .app-shell { display: block; }
+  body,section,.metric,.hero,.overview { background: white; color: #111; }
+  main { padding: 0; }
+  .sidebar,.toolbar,.field-art,.overview,.skip-link,.hero .row,button,#sessions,#clip-review,#review,#pitch-log th:last-child,#pitch-log td:last-child { display: none; }
+  .hero { min-height: 0; padding: 0 0 12px; border: 0; }
+  h1 { font-size: 36px; }
+  h1 br { display: none; }
+  h1 span { color: #333; }
+  section,.metric { border-color: #ddd; break-inside: avoid; }
+  p,label,th,small,.hero p,.metric strong,tbody th { color: #333; }
+  select,input,textarea { background: white; color: #111; border-color: #ccc; }
+  .table-scroll { overflow: visible; }
+  table { white-space: normal; }
+}
+</style>
+</head>
+<body>
+<a class="skip-link" href="#workspace">Skip to workspace</a>
+<div class="app-shell">
+<aside class="sidebar">
+<a class="brand" href="#workspace"><span class="brand-mark" aria-hidden="true"></span><span>Bullpen<strong>Baseline</strong></span></a>
+<nav aria-label="Workspace"><a href="#sessions">Sessions</a><a href="#pitcher-profile">Pitcher profile</a><a href="#clip-review">Video review</a><a href="#pitch-log">Pitch log</a><a href="#analysis">Performance analysis</a><a href="#training">Training and recovery</a></nav>
+<p class="local-label">Local workspace</p>
+</aside>
+<main id="workspace">
+<div class="toolbar"><span>Pitching workspace</span><div class="row"><button id="print-report">Print report</button><button id="export">Export JSON</button><button id="export-csv">Export CSV</button></div></div>
+<header class="hero">
+<div class="hero-copy"><h1>Bullpen <br>Baseline<span>.</span></h1><p>Review your delivery. Test one cue. See what changes on the mound.</p><small id="report-session"></small><div class="row"><button id="quick-upload" class="primary">Load pitching clips</button><a class="secondary-action" href="#sessions">Manage sessions</a></div></div>
+<div class="field-art" aria-hidden="true"><span class="field-rings"></span><span class="field-diamond"></span><span class="field-mound"></span><span class="field-home"></span></div>
+</header>
+<div class="overview" aria-label="Current bullpen overview">
+<div><span>Clips loaded</span><strong id="overview-clips">0</strong></div>
+<div><span>Scored for command</span><strong id="overview-command">0</strong></div>
+<div><span>Peak radar velocity</span><strong id="overview-velocity">-</strong></div>
+<div><span>Videos analyzed</span><strong id="overview-analyzed">0</strong></div>
+</div>
+<section id="sessions">
+<h2>Sessions</h2>
+<div class="fields"><label>Pitcher<input id="pitcher" autocomplete="off" placeholder="Pitcher name or ID"></label><label>Session name<input id="session" placeholder="Saturday bullpen"></label></div>
+<div class="fields"><label>Saved sessions<select id="saved-sessions"><option value="">Choose a saved session</option></select></label><div class="row"><button id="open-session">Open session</button><button id="new-session">New session</button><button id="same-pitcher">New bullpen for this pitcher</button><button id="save-session" class="primary">Save session</button></div></div>
+<output id="storage-status" aria-live="polite"></output>
+<p>Saved sessions include the videos and are available in this browser on this device. JSON and CSV exports contain measurements and notes.</p>
+</section>
+<section id="pitcher-profile">
+<h2>Pitcher profile</h2>
+<p>Use the profile to give each bullpen context. Mechanics targets are based on this pitcher's measured results.</p>
+<div class="fields">
+<label>Height (inches)<input id="profile-height" type="number" min="1" step="0.1" placeholder="72 = 6 ft"></label>
+<label>Weight (lb)<input id="profile-weight" type="number" min="1" step="0.1"></label>
+<label>Age (optional)<input id="profile-age" type="number" min="1" step="1"></label>
+<label>Throwing hand<select id="profile-hand"><option value="">Choose hand</option><option value="right">Right</option><option value="left">Left</option></select></label>
+<label>Competition level<select id="profile-level"><option value="">Choose level</option><option>Youth</option><option>High school</option><option>College</option><option>Professional</option><option>Recreational</option></select></label>
+<label>Pitching role<select id="profile-role"><option value="">Choose role</option><option>Starter</option><option>Reliever</option><option>Starter and reliever</option><option>Developing role</option></select></label>
+</div>
+<h3>Bullpen context</h3>
+<div class="fields">
+<label>Session date<input id="context-date" type="date"></label>
+<label>Total pitches thrown (including unfilmed)<input id="context-count" type="number" min="1" step="1"></label>
+<label>Perceived effort (1 to 10)<input id="context-effort" type="number" min="1" max="10" step="1"></label>
+<label>Target radius for command (inches)<input id="context-radius" type="number" min="1" step="any" placeholder="Optional"></label>
+</div>
+<p>Use the target radius to track the share of pitches that finished within your chosen distance of the intended location.</p>
+</section>
+<section id="clip-review">
+<h2>Video review</h2>
+<p>Load one pitch per clip from any camera angle. For body tracking, keep the pitcher in frame.</p>
+<div class="fields"><label>Pitch clips<input id="files" type="file" accept="video/*,.mov,.mp4,.webm" multiple></label><label>Pitch type for new clips<select id="upload-pitch-type"></select></label><label>Condition for new clips<select id="upload-condition"><option value="routine">Routine bullpen</option><option value="baseline">Normal delivery</option><option value="cue">Testing the cue</option></select></label></div>
+<details class="model-settings"><summary>Tracking model settings</summary><div class="fields"><label>Tracking model (.task)<input id="model-file" type="file" accept=".task" aria-describedby="model-status"></label><div class="row"><button id="model-full">Load MediaPipe Full</button><button id="model-reset" disabled>Use default model</button></div></div>
+<p id="model-status" aria-live="polite">Default model selected. You can load a MediaPipe Pose Landmarker .task model from your device.</p>
+</details>
+<div class="fields"><label>Clip A<select id="a"></select></label><label>Clip B<select id="b"></select></label></div>
+<label>Playback speed<select id="playback-rate"><option value="1">Normal</option><option value=".5">Half speed</option><option value=".25">Quarter speed</option></select></label>
+<div class="row"><button id="contact">Align at foot contact</button><button id="release">Align at release</button><button id="play" class="primary">Play both</button><button id="pause">Pause both</button></div>
+<output id="status" aria-live="polite"></output>
+</section>
+<div class="grid" id="review"></div>
+<section id="pitch-log">
+<h2>Pitch log</h2>
+<p id="log-empty">Add clips to begin the pitch log.</p>
+<div class="table-scroll" id="log-table" hidden><table><thead><tr><th scope="col">Pitch</th><th scope="col">Type</th><th scope="col">Condition</th><th scope="col">Camera view</th><th scope="col">Target miss</th><th scope="col">Radar</th><th scope="col">Contact to release</th><th scope="col">Review</th></tr></thead><tbody id="pitch-rows"></tbody></table></div>
+</section>
+<section id="analysis">
+<h2>Coach review</h2>
+<div class="metric" id="review-readiness" aria-live="polite"></div>
+<div class="row"><button id="analyze-selected" class="primary">Analyze selected clips</button><button id="cancel-selected" hidden>Stop batch</button></div>
+<output id="batch-status" role="status"></output>
+<div class="fields"><label>Session objective<textarea id="coach-objective" placeholder="What should this bullpen resolve?"></textarea></label><label>Coach observations<textarea id="coach-observations" placeholder="Record what you see and the pitch numbers that support it"></textarea></label><label>Next bullpen test<textarea id="coach-test" placeholder="One cue, the target, and the outcome to measure"></textarea></label><label>Review decision<select id="coach-decision"><option value="">Awaiting coach review</option><option>Collect more evidence</option><option>Test one change</option><option>Repeat successful trial</option><option>Keep current delivery</option></select></label></div>
+<h2>Session baseline</h2>
+<p>Use the same target grid for every pitch. Enter target and actual location as offsets in inches from the same origin. Left and down are negative.</p>
+<div class="metrics" id="metrics"></div>
+<h3>Performance recommendation</h3>
+<div class="fields"><label>Pitching goal<select id="goal"><option value="command">Improve command</option><option value="velocity">Increase velocity while maintaining command</option></select></label><label>Pitch type to analyze<select id="analysis-type"></select></label></div>
+<div class="metrics" id="pitcher-performance" aria-label="Performance for selected pitch type"></div>
+<p>Use the same pitcher, pitch type, target, and recording speed when comparing delivery timing.</p>
+<div class="metric" id="recommendation" aria-live="polite"></div>
+<div class="row"><button id="apply-cue" disabled>Use this cue in my plan</button></div>
+<h3>Normal delivery vs. cue</h3>
+<p>Alternate short sets at the same target. Use one cue per trial, record it in the coaching plan, and log where each pitch finishes.</p>
+<div class="metric trial-result" id="trial-result" aria-live="polite"></div>
+<h3>Coaching plan</h3>
+<div class="fields">
+<label>Physical cue to test<textarea id="physical" placeholder="Choose one cue after comparing your clips"></textarea></label>
+<label>Mental routine<select id="mental"><option value="">Choose a routine</option><option>Reset after a miss: breathe, pick a target, commit.</option><option>Before each pitch: name the target and picture the pitch.</option><option>Between sets: record one observation and return to your cue.</option></select></label>
+</div>
+<p id="next"></p>
+</section>
+<section id="training">
+<h2>Training and recovery</h2>
+<div class="fields">
+<label>How does the pitcher feel today?<select id="training-readiness"><option value="">Choose readiness</option><option value="normal">Feels normal, no throwing pain</option><option value="fatigued">Unusually tired or sore, no throwing pain</option><option value="pain">Pain with throwing</option></select></label>
+<label>Pitches in last game (optional)<input id="training-game-pitches" type="number" min="1" step="1"></label>
+</div>
+<p>Enter game pitches separately from bullpen workload. Use the same day's combined game count if the pitcher appeared in multiple games.</p>
+<div id="training-plan" class="metric" aria-live="polite"></div>
+<p><a href="https://www.mlb.com/pitch-smart/pitching-guidelines" target="_blank" rel="noopener">MLB Pitch Smart</a> � <a href="https://orthoinfo.aaos.org/en/recovery/rotator-cuff-and-shoulder-conditioning-program/" target="_blank" rel="noopener">AAOS shoulder conditioning</a> � <a href="https://www.cdc.gov/sleep/about/" target="_blank" rel="noopener">CDC sleep guidance</a></p>
+</section>
+</main>
+</div>
+<template id="clip"><article class="clip">
+<h3></h3>
+<div class="video-stage"><video controls playsinline preload="metadata"></video><canvas class="pose-overlay" aria-hidden="true" hidden></canvas></div>
+<div class="row"><button data-pose aria-pressed="false">Track body motion</button></div>
+<p class="tracking" aria-live="polite">Body tracking needs internet access to load the model. Pitch video is processed in your browser.</p>
+<div class="metric"><h4>Video analysis</h4><p class="clip-analysis" role="status">Play the clip to the end for automatic feedback, or run analysis now.</p><progress class="analysis-progress" aria-label="Video analysis progress" max="100" hidden></progress><div class="row"><button class="primary" data-analyze>Run analysis</button><button data-cancel-analysis hidden>Cancel</button><button data-review-frame hidden>Review frame</button></div><p class="measurement-targets" hidden></p><ul class="analysis-measures" hidden></ul>
+<details><summary>How to interpret these measurements</summary><p>Angles and distances are projections from this camera. Compare the same pitcher, pitch type, camera placement and recording speed. Foot spacing is not calibrated stride length. Shoulder and hip lines do not measure hip-shoulder separation. This workflow does not measure shoulder rotation, joint loading, ground forces, or ball speed.</p><p><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9950989/" target="_blank" rel="noopener">Pitching biomechanics reference</a> � <a href="https://github.com/drivelineresearch/openbiomechanics" target="_blank" rel="noopener">Motion capture research dataset</a></p></details></div>
+<div class="fields"><label>Camera view<select class="view"><option value="">Unspecified</option><option>Side</option><option>Front (catcher view)</option><option>Rear (pitcher view)</option><option>Oblique</option><option>Elevated or other</option></select></label><label>Throwing hand<select class="throwing-hand"><option value="">Choose hand</option><option value="right">Right</option><option value="left">Left</option></select></label></div>
+<div class="fields"><label>Pitch type<select class="pitch-type"></select></label><label>Trial condition<select class="condition"><option value="routine">Routine bullpen</option><option value="baseline">Normal delivery</option><option value="cue">Testing the cue</option></select></label></div>
+<div class="row"><button data-step="-0.01">Back 0.01 s</button><button data-step="0.01">Forward 0.01 s</button></div>
+<div class="row"><button data-mark="lift">Mark peak leg lift</button><button data-mark="contact">Mark foot contact</button><button data-mark="release">Mark ball release</button><button data-mark="finish">Mark follow through</button></div>
+<p class="markers"></p><div class="fields"></div><p class="result"></p>
+</article></template>
+<script>
+'use strict';
+const get = id => document.getElementById(id);
+const pitches = [];
+const slots = {};
+let sessionId;
+let savedRevision;
+let dirty = false;
+let editCount = 0;
+let storageBusy = false;
+let database;
+let poseModel;
+let poseRuntime;
+let customModelName = '';
+const poseVersion = '@mediapipe/tasks-vision@0.10.22-rc.20250304';
+const posePackages = ['https://cdn.jsdelivr.net/npm/' + poseVersion,'https://unpkg.com/' + poseVersion];
+const poseAsset = 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task';
+const fullPoseAsset = 'https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_full/float16/1/pose_landmarker_full.task';
+const visible = point => point && point.visibility >= .65 && point.x >= 0 && point.x <= 1 && point.y >= 0 && point.y <= 1;
+const trackedBody = [11,12,13,14,15,16,23,24,25,26,27,28];
+const trackingHelp = 'Compare body positions within the same camera view. Use event timing to compare clips across views.';
+
+async function createPoseTracker(source) {
+  poseRuntime ??= (async () => {
+    for (const url of posePackages) {
+      try {
+        const {FilesetResolver, PoseLandmarker} = await import(url + '/vision_bundle.mjs');
+        const files = await FilesetResolver.forVisionTasks(url + '/wasm');
+        return {files, PoseLandmarker};
+      } catch (error) {
+        console.warn('Tracking runtime could not load from ' + url,error);
+      }
+    }
+    throw new Error('The browser could not load the MediaPipe tracking runtime. Open this file directly in Chrome or Edge and check your internet connection.');
+  })().catch(error => {
+    poseRuntime = null;
+    throw error;
+  });
+  const {files, PoseLandmarker} = await poseRuntime;
+  let model;
+  try {
+    model = await PoseLandmarker.createFromOptions(files, {
+      baseOptions:{...source,delegate:'CPU'}, runningMode:'IMAGE', numPoses:1
+    });
+  } catch (error) {
+    const detail = error?.message?.split('\n')[0]?.slice(0,220);
+    throw new Error('MediaPipe could not initialize this model.' + (detail ? ' ' + detail : ''),{cause:error});
+  }
+  return {model, connections:PoseLandmarker.POSE_CONNECTIONS};
+}
+
+function loadPoseModel() {
+  poseModel ??= createPoseTracker({modelAssetPath:poseAsset}).catch(error => {
+    if (!customModelName) poseModel = null;
+    throw error;
+  });
+  return poseModel;
+}
+
+function setPoseModel(tracker, name = '') {
+  Object.values(slots).forEach(slot => {
+    slot.cancelAnalysis();
+    slot.resetTracking();
+  });
+  const previous = poseModel;
+  poseModel = tracker ? Promise.resolve(tracker) : null;
+  customModelName = name;
+  previous?.then(({model}) => model.close(), () => {}).catch(() => {});
+  get('model-reset').disabled = !name;
+  get('model-status').textContent = name ? 'Active model: ' + name : 'Default model selected.';
+}
+
+async function selectPoseModel(name, getSource) {
+  const input = get('model-file');
+  input.disabled = true;
+  get('model-full').disabled = true;
+  get('model-reset').disabled = true;
+  get('model-status').textContent = 'Loading ' + name + '.';
+  try {
+    const tracker = await createPoseTracker(await getSource());
+    setPoseModel(tracker,name);
+  } catch (error) {
+    get('model-status').textContent = error.message + ' Still selected: ' + (customModelName || 'default model') + '.';
+  } finally {
+    input.disabled = false;
+    get('model-full').disabled = false;
+    get('model-reset').disabled = !customModelName;
+  }
+}
+
+get('model-file').onchange = async event => {
+  const input = event.currentTarget;
+  const file = input.files[0];
+  if (!file) return;
+  input.value = '';
+  if (!file.name.toLowerCase().endsWith('.task') || !file.size || file.size > 64 * 1024 * 1024) {
+    get('model-status').textContent = 'Choose a nonempty Pose Landmarker .task file up to 64 MB. The current model is still selected.';
+    return;
+  }
+  await selectPoseModel(file.name,async () => {
+    try {
+      return {modelAssetBuffer:new Uint8Array(await file.arrayBuffer())};
+    } catch {
+      throw new Error('The browser could not read ' + file.name + '. Choose the file again from Downloads.');
+    }
+  });
+};
+get('model-full').onclick = () => selectPoseModel('MediaPipe Full',() => ({modelAssetPath:fullPoseAsset}));
+get('model-reset').onclick = () => setPoseModel();
+
+function addPoseTracking(card, video) {
+  const button = card.querySelector('[data-pose]');
+  const canvas = card.querySelector('canvas');
+  const status = card.querySelector('.tracking');
+  const context = canvas.getContext('2d');
+  let tracker;
+  let request;
+  let disposed = false;
+  let generation = 0;
+  let lastRun = -Infinity;
+  let lastTime = -1;
+  function setStatus(message) {
+    if (status.textContent !== message) status.textContent = message;
+  }
+  function stop() {
+    generation++;
+    if (request !== undefined) cancelAnimationFrame(request);
+    request = undefined;
+    tracker = undefined;
+    canvas.hidden = true;
+    button.textContent = 'Track body motion';
+    button.disabled = false;
+    button.setAttribute('aria-pressed','false');
+  }
+  function draw() {
+    if (!tracker || video.readyState < 2 || video.seeking || !video.videoWidth) return;
+    const {clientWidth:width,clientHeight:height} = video;
+    if (!width || !height) return;
+    const now = performance.now();
+    if (video.currentTime === lastTime || now - lastRun < 55) return;
+    lastRun = now;
+    lastTime = video.currentTime;
+    const {model, connections} = tracker;
+    const points = model.detect(video).landmarks[0] ?? [];
+    const count = trackedBody.filter(index => visible(points[index])).length;
+    canvas.width = width;
+    canvas.height = height;
+    if (count < 4) {
+      setStatus('Limited tracking on this frame. Check the pitcher is visible, close enough, and in focus.');
+      return;
+    }
+    const scale = Math.min(width / video.videoWidth, height / video.videoHeight);
+    const frameWidth = video.videoWidth * scale;
+    const frameHeight = video.videoHeight * scale;
+    const left = (width - frameWidth) / 2;
+    const top = (height - frameHeight) / 2;
+    const x = point => left + point.x * frameWidth;
+    const y = point => top + point.y * frameHeight;
+    context.strokeStyle = '#d8f383';
+    context.fillStyle = '#d8f383';
+    context.lineWidth = 2;
+    context.beginPath();
+    for (const {start,end} of connections) {
+      const first = points[start];
+      const second = points[end];
+      if (!visible(first) || !visible(second)) continue;
+      context.moveTo(x(first),y(first));
+      context.lineTo(x(second),y(second));
+    }
+    context.stroke();
+    for (const index of trackedBody) {
+      const point = points[index];
+      if (!visible(point)) continue;
+      context.beginPath();
+      context.arc(x(point),y(point),3,0,2*Math.PI);
+      context.fill();
+    }
+    setStatus(count >= 9 ? trackingHelp : 'Partial tracking. Some joints are hidden or unclear in this frame.');
+  }
+  function tick() {
+    if (!tracker) return;
+    try {
+      draw();
+      request = requestAnimationFrame(tick);
+    } catch {
+      stop();
+      setStatus('Body tracking stopped on this clip. You can still review the video and mark pitching events.');
+    }
+  }
+  button.onclick = async () => {
+    if (tracker) {
+      stop();
+      setStatus('Body tracking is off.');
+      return;
+    }
+    button.disabled = true;
+    const current = ++generation;
+    setStatus('Loading body tracking model.');
+    try {
+      const model = await loadPoseModel();
+      if (disposed || current !== generation) return;
+      tracker = model;
+      lastTime = -1;
+      canvas.hidden = false;
+      button.textContent = 'Turn off tracking';
+      button.setAttribute('aria-pressed','true');
+      setStatus('Play or seek in this clip to see the tracked body positions.');
+      tick();
+    } catch {
+      if (!disposed && current === generation) setStatus('The tracking model could not load. Check your connection or try another browser. Manual review is still available.');
+    } finally {
+      if (current === generation) button.disabled = false;
+    }
+  };
+  const observer = new ResizeObserver(() => { lastTime = -1; });
+  observer.observe(video);
+  return {
+    resetTracking() {
+      stop();
+      setStatus('Model selection changed. Select Track body motion to use it on this clip.');
+    },
+    disposeTracking() {
+      disposed = true;
+      observer.disconnect();
+      stop();
+    }
+  };
+}
+const labels = {
+  targetX:'Target horizontal (in)',targetY:'Target vertical (in)',actualX:'Actual horizontal (in)',actualY:'Actual vertical (in)',
+  mph:'Radar velocity (mph)',spinRpm:'Measured spin rate (rpm)',horizontalBreak:'Measured horizontal break (in)',
+  inducedVerticalBreak:'Measured induced vertical break (in)'
+};
+const pitchTypes = ['Four-seam fastball','Sinker / two-seam','Cutter','Slider','Sweeper','Curveball','Changeup','Splitter','Knuckleball','Other'];
+const defaultPitchType = pitchTypes[0];
+const conditions = {routine:'Routine bullpen',baseline:'Normal delivery',cue:'Testing the cue'};
+const pitchTypeOf = pitch => pitch.pitchType || defaultPitchType;
+const profileFields = {
+  heightIn:'profile-height',weightLb:'profile-weight',age:'profile-age',
+  throwingHand:'profile-hand',level:'profile-level',role:'profile-role'
+};
+const contextFields = {
+  date:'context-date',totalPitches:'context-count',effort:'context-effort',targetRadiusIn:'context-radius'
+};
+const trainingFields = {readiness:'training-readiness',gamePitches:'training-game-pitches'};
+const coachFields = {objective:'coach-objective',observations:'coach-observations',nextTest:'coach-test',decision:'coach-decision'};
+let batchController;
+
+function reviewReadiness() {
+  const count = pitches.length;
+  const marked = pitches.filter(pitch => number(pitch.contact) && number(pitch.release) && pitch.release > pitch.contact).length;
+  const scored = pitches.filter(pitch => number(measure(pitch).missIn)).length;
+  const analyzed = pitches.filter(pitch => pitch.videoAnalysis?.state === 'measured').length;
+  const described = pitches.filter(pitch => pitch.cameraView && pitch.throwingHand).length;
+  const text = count ? [
+    marked + ' of ' + count + ' clips have contact and release markers.',
+    described + ' have a camera view and throwing hand.',
+    scored + ' have measured command results.',
+    analyzed + ' have event measurements from video.'
+  ].join(' ') : 'Load clips to begin a coach review.';
+  get('review-readiness').textContent = text;
+}
+get('cancel-selected').onclick = () => batchController?.abort();
+get('analyze-selected').onclick = async () => {
+  if (batchController) return;
+  const selected = [...new Set(Object.values(slots).map(slot => slot.pitch))];
+  if (!selected.length) {
+    get('batch-status').textContent = 'Load a clip in the video review panes first.';
+    return;
+  }
+  const controller = new AbortController();
+  batchController = controller;
+  get('analyze-selected').disabled = true;
+  get('cancel-selected').hidden = false;
+  let completed = 0;
+  let failed = 0;
+  try {
+    for (const pitch of selected) {
+      if (controller.signal.aborted || !pitches.includes(pitch)) break;
+      try {
+        const result = await scanClip({...pitch},controller.signal,(done,total) => {
+          get('batch-status').textContent = 'Clip ' + (completed+failed+1) + ' of ' + selected.length +
+            ' � ' + done + ' of ' + total + ' frames';
+        });
+        if (controller.signal.aborted || !pitches.includes(pitch)) break;
+        pitch.videoAnalysis = result;
+        completed++;
+        markDirty();
+        refresh();
+      } catch (error) {
+        if (controller.signal.aborted) break;
+        failed++;
+        get('status').textContent = 'Could not analyze ' + pitch.name + '. ' + error.message;
+      }
+    }
+    get('batch-status').textContent = completed + ' analyzed, ' + failed + ' failed.' +
+      (controller.signal.aborted ? ' Batch stopped.' : '');
+  } finally {
+    batchController = undefined;
+    get('analyze-selected').disabled = false;
+    get('cancel-selected').hidden = true;
+  }
+};
+function readFields(fields) {
+  return Object.fromEntries(Object.entries(fields).map(([key,id]) => {
+    const input = get(id);
+    const value = input.type === 'number' ? (input.validity.valid && number(input.valueAsNumber) ? input.valueAsNumber : null) : input.value || null;
+    return [key,value];
+  }));
+}
+function restoreFields(fields,values) {
+  for (const [key,id] of Object.entries(fields)) get(id).value = values?.[key] ?? '';
+}
+
+function youthGameRest(age,pitches) {
+  if (!Number.isInteger(age) || age < 7 || age > 18 || !Number.isInteger(pitches) || pitches < 1) return null;
+  // Pitch Smart upper limit for each rest category, from zero to four days.
+  const ceilings = age <= 8 ? [20,35,50] : age <= 10 ? [20,35,50,65,75] :
+    age <= 12 ? [20,35,50,65,85] : age <= 14 ? [20,35,50,65,95] :
+    age <= 16 ? [30,45,60,75,95] : [30,45,60,80,105];
+  const days = ceilings.findIndex(maximum => pitches <= maximum);
+  return {days:days < 0 ? null : days,maximum:ceilings.at(-1),overLimit:days < 0};
+}
+
+function buildTrainingPlan(profile,bullpen,checkIn,goal) {
+  const gameRest = youthGameRest(profile.age,checkIn.gamePitches);
+  const items = [];
+  const add = (label,text) => items.push({label,text});
+  if (checkIn.readiness === 'pain') {
+    add('Throwing pain','Stop throwing and get evaluated by a sports medicine clinician before returning to pitching.');
+  } else if (checkIn.readiness === 'fatigued' || bullpen.effort >= 8) {
+    add('Recovery focus','Favor rest or light, pain-free activity. Defer high-effort throwing and check readiness with your coach or athletic trainer before the next bullpen.');
+  } else if (checkIn.readiness === 'normal') {
+    add('Warm-up','Start with easy movement, then use controlled arm circles, walking lunges, and a gradual throwing warm-up when your schedule permits.');
+    add('Strength options',goal === 'velocity' ?
+      'Discuss split squats, hip hinges, and light band rows with your strength coach. Use loads you already tolerate and keep lifting separate from your velocity test.' :
+      'Try controlled step-ups, split squats, or light band rows in your regular strength session. Use the next bullpen to test one delivery cue at your normal effort.');
+    add('Mobility options','Try a gentle hip flexor or calf stretch. Use a gentle cross-body shoulder stretch only if comfortable and familiar. Stop any movement that causes pain.');
+  } else {
+    add('Readiness check','Select how the pitcher feels before using the exercise or recovery suggestions.');
+  }
+  if (gameRest) {
+    add('Game pitching rest',gameRest.overLimit ?
+      'The game count exceeds the Pitch Smart daily maximum of ' + gameRest.maximum + ' for this age. Review the workload with the coach or athletic trainer before another outing.' :
+      'MLB Pitch Smart lists ' + gameRest.days + ' day' + (gameRest.days === 1 ? '' : 's') +
+      ' of rest for this age and game count. Follow stricter league or team rules and review the pitcher's readiness separately.');
+  } else {
+    add('Throwing schedule','Review recent outings, bullpen volume, and recovery with your coach or athletic trainer. This app calculates game rest only for ages 7 to 18 when a game count is entered.');
+  }
+  if (bullpen.totalPitches) add('Bullpen workload','Logged ' + bullpen.totalPitches +
+    ' pitches' + (bullpen.effort ? ' at ' + bullpen.effort + ' out of 10 perceived effort' : '') +
+    '. Include this workload when planning the next outing.');
+  const age = profile.age;
+  const hours = age >= 7 && age <= 12 ? '9 to 12 hours' : age >= 13 && age <= 17 ? '8 to 10 hours' :
+    age >= 18 && age <= 60 ? 'at least 7 hours' : age >= 61 && age <= 64 ? '7 to 9 hours' :
+    age >= 65 ? '7 to 8 hours' : null;
+  if (hours) add('Sleep','CDC guidance for this age is ' + hours + ' per day.');
+  return {items,gameRest};
+}
+
+function showTrainingPlan() {
+  const {items} = buildTrainingPlan(readFields(profileFields),readFields(contextFields),readFields(trainingFields),get('goal').value);
+  get('training-plan').replaceChildren(...items.map(({label,text}) => {
+    const row = document.createElement('p');
+    const name = document.createElement('strong');
+    name.textContent = label + ' ';
+    row.append(name,document.createTextNode(text));
+    return row;
+  }));
+}
+function populatePitchTypes(select) {
+  for (const type of pitchTypes) select.add(new Option(type,type));
+}
+for (const id of ['analysis-type','upload-pitch-type']) populatePitchTypes(get(id));
+const number = value => Number.isFinite(value);
+const format = (value, unit) => number(value) ? value.toFixed(1) + ' ' + unit : '-';
+const mean = values => values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : null;
+function measure(pitch) {
+  const {contact, release, targetX, targetY, actualX, actualY, mph} = pitch;
+  return {
+    timingMs: number(contact) && number(release) ? (release - contact) * 1000 : null,
+    missIn: [targetX,targetY,actualX,actualY].every(number) ? Math.hypot(actualX-targetX,actualY-targetY) : null,
+    mph: number(mph) ? mph : null
+  };
+}
+
+const eventLabels = {lift:'Peak leg lift',contact:'Foot contact',release:'Ball release',finish:'Follow through'};
+const eventKeys = Object.keys(eventLabels);
+
+function samplePose(points,time,width,height,hand) {
+  const count = trackedBody.filter(index => visible(points[index])).length;
+  const sample = {time,count};
+  const point = index => visible(points[index]) ? [points[index].x*width,points[index].y*height] : null;
+  const mid = (a,b) => a && b ? [(a[0]+b[0])/2,(a[1]+b[1])/2] : null;
+  const vector = (a,b) => a && b ? [b[0]-a[0],b[1]-a[1]] : null;
+  const magnitude = v => v ? Math.hypot(...v) : 0;
+  const angle = (a,b) => {
+    const denominator = magnitude(a)*magnitude(b);
+    return denominator > 1 ? Math.acos(Math.max(-1,Math.min(1,(a[0]*b[0]+a[1]*b[1])/denominator)))*180/Math.PI : undefined;
+  };
+  const shoulders = mid(point(11),point(12));
+  const hips = mid(point(23),point(24));
+  const trunk = vector(hips,shoulders);
+  const torso = magnitude(trunk);
+  const nose = point(0);
+  sample.trunkLean = angle(trunk,[0,-1]);
+  if (torso >= height*.04) {
+    if (nose) sample.headOffset = (nose[0]-hips[0])/torso;
+    const feet = vector(point(27),point(28));
+    if (feet) sample.footSpacing = magnitude(feet)/torso;
+  }
+  if (!hand) return sample;
+  const side = hand === 'right' ? 1 : 0;
+  const shoulder = point(11+side);
+  const elbow = point(13+side);
+  const wrist = point(15+side);
+  const leadHip = point(24-side);
+  const leadKnee = point(26-side);
+  const leadAnkle = point(28-side);
+  const elbowAngle = angle(vector(elbow,shoulder),vector(elbow,wrist));
+  const kneeAngle = angle(vector(leadKnee,leadHip),vector(leadKnee,leadAnkle));
+  if (number(elbowAngle)) sample.elbowFlexion = 180-elbowAngle;
+  if (number(kneeAngle)) sample.kneeFlexion = 180-kneeAngle;
+  sample.upperArmAngle = angle(vector(shoulder,elbow),vector(shoulders,hips));
+  const arm = vector(shoulder,wrist);
+  if (magnitude(arm) > 1) sample.armLine = Math.atan2(-arm[1],Math.abs(arm[0]))*180/Math.PI;
+  if (leadKnee && torso >= height*.04) sample.kneeLift = (hips[1]-leadKnee[1])/torso;
+  return sample;
+}
+
+function describeClip(samples,pitch) {
+  const reliable = samples.filter(frame => frame.count >= 9);
+  const evidence = reliable.length + ' of ' + samples.length + ' sampled frames showed most major joints. ';
+  if (reliable.length < Math.ceil(samples.length*.65)) {
+    return {state:'limited',message:evidence + 'Review or refilm this pitch with the full delivery in frame before changing mechanics.',
+      reviewTime:samples.reduce((worst,frame) => frame.count < worst.count ? frame : worst).time};
+  }
+  const at = key => samples.find(frame => frame.time === pitch[key]);
+  const measures = [];
+  const add = (event,label,value,unit) => {
+    if (number(value)) measures.push({event,label,value,unit});
+  };
+  const definitions = {
+    lift:[['kneeLift','Lead knee height relative to hips','x torso']],
+    contact:[['footSpacing','Projected ankle spacing','x torso'],['kneeFlexion','Lead knee flexion','�'],
+      ['elbowFlexion','Throwing elbow flexion','�'],['upperArmAngle','Upper arm angle to trunk','�'],['trunkLean','Trunk lean from vertical','�']],
+    release:[['kneeFlexion','Lead knee flexion','�'],['elbowFlexion','Throwing elbow flexion','�'],
+      ['armLine','Shoulder to wrist line above horizontal','�'],['trunkLean','Trunk lean from vertical','�']],
+    finish:[['trunkLean','Trunk lean from vertical','�'],['kneeFlexion','Lead knee flexion','�']]
+  };
+  for (const event of eventKeys) {
+    const frame = at(event);
+    if (!frame) continue;
+    for (const [key,label,unit] of definitions[event]) add(eventLabels[event],label,frame[key],unit);
+  }
+  const before = at('contact');
+  const after = at('release');
+  if (before && after) {
+    const event = 'Contact to release';
+    add(event,'Elapsed video time',(after.time-before.time)*1000,'ms');
+    add(event,'Head shift relative to hips',Math.abs(after.headOffset-before.headOffset),'x torso');
+    add(event,'Lead knee extension',before.kneeFlexion-after.kneeFlexion,'�');
+    add(event,'Throwing elbow extension',before.elbowFlexion-after.elbowFlexion,'�');
+  }
+  const action = measures.length ?
+    'Compare the measured positions with a better executed pitch filmed from the same angle. Test one cue only if the pattern repeats.' :
+    'Mark peak leg lift, foot contact, release or follow through, then run analysis again to measure body position at those events.';
+  return {state:measures.length?'measured':'review',measures,
+    message:evidence + action + (!pitch.throwingHand ? ' Select the throwing hand to include lead leg and throwing arm measures.' : ''),
+    reviewTime:after?.time ?? reliable[Math.floor(reliable.length/2)].time};
+}
+
+function waitForVideo(video,event,signal,start) {
+  return new Promise((resolve,reject) => {
+    signal.throwIfAborted();
+    const finish = error => {
+      clearTimeout(timeout);
+      video.removeEventListener(event,ready);
+      video.removeEventListener('error',failed);
+      signal.removeEventListener('abort',aborted);
+      if (error) reject(error);
+      else resolve();
+    };
+    const ready = () => finish();
+    const failed = () => finish(new Error('The browser could not decode this clip.'));
+    const aborted = () => finish(signal.reason);
+    const timeout = setTimeout(() => finish(new Error('The clip took too long to decode.')),8000);
+    video.addEventListener(event,ready);
+    video.addEventListener('error',failed);
+    signal.addEventListener('abort',aborted);
+    try { start(); } catch (error) { finish(error); }
+  });
+}
+
+async function scanClip(pitch,signal,progress) {
+  const {model} = await loadPoseModel();
+  signal.throwIfAborted();
+  const video = document.createElement('video');
+  video.muted = true;
+  video.preload = 'auto';
+  try {
+    await waitForVideo(video,'loadeddata',signal,() => { video.src = pitch.url; });
+    const marked = number(pitch.contact) && number(pitch.release) &&
+      pitch.contact >= 0 && pitch.release > pitch.contact && pitch.release < video.duration;
+    const end = video.duration;
+    if (!number(end) || end <= 0) throw new Error('This clip has no readable duration.');
+    if (end > 15 && !marked) throw new Error('Use a clip under 15 seconds or mark foot contact and release to isolate one delivery.');
+    const from = end > 15 ? pitch.contact : 0;
+    const to = end > 15 ? pitch.release : end;
+    const times = Array.from({length:16},(_,index) => from + (to-from)*(index+.5)/16);
+    for (const key of eventKeys) if (number(pitch[key]) && pitch[key] >= 0 && pitch[key] < end) times.push(pitch[key]);
+    const samples = [];
+    const uniqueTimes = [...new Set(times)].sort((a,b) => a-b);
+    progress(0,uniqueTimes.length);
+    for (const time of uniqueTimes) {
+      signal.throwIfAborted();
+      if (Math.abs(video.currentTime-time) > .0001) {
+        await waitForVideo(video,'seeked',signal,() => { video.currentTime = time; });
+      }
+      const points = model.detect(video).landmarks[0] ?? [];
+      samples.push(samplePose(points,time,video.videoWidth,video.videoHeight,pitch.throwingHand));
+      progress(samples.length,uniqueTimes.length);
+      await new Promise(resolve => setTimeout(resolve,0));
+    }
+    return describeClip(samples,pitch);
+  } finally {
+    video.removeAttribute('src');
+    video.load();
+  }
+}
+
+function addClipAnalysis(card,video,pitch) {
+  const status = card.querySelector('.clip-analysis');
+  const analyze = card.querySelector('[data-analyze]');
+  const review = card.querySelector('[data-review-frame]');
+  const cancel = card.querySelector('[data-cancel-analysis]');
+  const progress = card.querySelector('progress');
+  const measures = card.querySelector('.analysis-measures');
+  const targets = card.querySelector('.measurement-targets');
+  let controller;
+  function render(force = false) {
+    if (controller && !force) return;
+    status.textContent = pitch.videoAnalysis?.message || 'Play the clip to the end for automatic feedback, or run analysis now.';
+    review.hidden = !number(pitch.videoAnalysis?.reviewTime);
+    const rows = pitch.videoAnalysis?.measures ?? [];
+    const benchmark = measurementTargets(pitch,pitches,get('goal').value);
+    targets.hidden = !rows.length;
+    targets.textContent = benchmark.message;
+    measures.hidden = !rows.length;
+    measures.replaceChildren(...rows.map(({event,label,value,unit},index) => {
+      const item = document.createElement('li');
+      const show = number => number.toFixed(unit === 'x torso' ? 2 : 1);
+      const range = benchmark.ranges[index];
+      item.textContent = event + ' � ' + label + ': ' + show(value) + ' ' + unit +
+        (range ? ' | Target: ' + show(range.low) + ' to ' + show(range.high) + ' ' + unit : ' | Target: more data needed');
+      return item;
+    }));
+  }
+  function setRunning(running) {
+    analyze.disabled = running;
+    cancel.hidden = !running;
+    progress.hidden = !running;
+    if (running) progress.removeAttribute('value');
+  }
+  async function run() {
+    if (controller) return;
+    const current = new AbortController();
+    controller = current;
+    setRunning(true);
+    review.hidden = true;
+    measures.hidden = true;
+    targets.hidden = true;
+    status.textContent = 'Loading the tracking model and opening the clip.';
+    try {
+      const result = await scanClip({...pitch},current.signal,(done,total) => {
+        progress.value = 100*done/total;
+        status.textContent = 'Analyzing frame ' + done + ' of ' + total + '.';
+      });
+      if (current.signal.aborted) return;
+      pitch.videoAnalysis = result;
+      markDirty();
+      updateOverview();
+      for (const slot of Object.values(slots)) slot.renderAnalysis(slot.pitch === pitch);
+    } catch (error) {
+      if (!current.signal.aborted) {
+        render(true);
+        status.textContent = 'Analysis could not finish. ' + error.message;
+      }
+    } finally {
+      if (controller === current) {
+        controller = undefined;
+        setRunning(false);
+      }
+    }
+  }
+  analyze.onclick = run;
+  cancel.onclick = () => {
+    cancelAnalysis();
+    status.textContent = 'Analysis canceled. Select Run analysis to try again.';
+  };
+  video.addEventListener('ended',() => { if (!pitch.videoAnalysis) void run(); });
+  review.onclick = () => {
+    if (number(pitch.videoAnalysis?.reviewTime) && video.readyState >= 1) {
+      video.pause();
+      video.currentTime = pitch.videoAnalysis.reviewTime;
+    }
+  };
+  render();
+  function cancelAnalysis() {
+    controller?.abort();
+    controller = undefined;
+    setRunning(false);
+    render();
+  }
+  return {renderAnalysis:render,cancelAnalysis};
+}
+const minimumPitches = 8;
+const median = values => {
+  const sorted = [...values].sort((a,b) => a-b);
+  const middle = Math.floor(sorted.length/2);
+  return sorted.length % 2 ? sorted[middle] : (sorted[middle-1] + sorted[middle])/2;
+};
+
+function pitcherPerformance(pitches,pitchType,radius) {
+  const results = pitches.filter(pitch => pitchTypeOf(pitch) === pitchType).map(measure);
+  const misses = results.map(result => result.missIn).filter(number);
+  const speeds = results.map(result => result.mph).filter(mph => mph > 0);
+  const inTarget = radius > 0 && misses.length ? misses.filter(miss => miss <= radius).length : null;
+  return {
+    pitchType,clips:results.length,scored:misses.length,radarCount:speeds.length,
+    medianMissIn:misses.length ? median(misses) : null,medianMph:speeds.length ? median(speeds) : null,
+    peakMph:speeds.length ? Math.max(...speeds) : null,targetRadiusIn:radius,inTarget
+  };
+}
+
+function showPitcherPerformance() {
+  const {targetRadiusIn} = readFields(contextFields);
+  const stats = pitcherPerformance(pitches,get('analysis-type').value,targetRadiusIn);
+  const rate = number(stats.inTarget) ? Math.round(100*stats.inTarget/stats.scored) + '%' : '-';
+  const tiles = [
+    ['Median target miss',format(stats.medianMissIn,'in'),stats.scored + ' of ' + stats.clips + ' clips scored'],
+    ['Within target radius',rate,number(stats.inTarget) ?
+      stats.inTarget + ' of ' + stats.scored + ' scored within ' + targetRadiusIn + ' in' : 'Set a target radius and score pitches'],
+    ['Median / peak velocity',number(stats.peakMph) ? stats.medianMph.toFixed(1) + ' / ' + format(stats.peakMph,'mph') : '-',
+      stats.radarCount + ' radar readings']
+  ];
+  get('pitcher-performance').replaceChildren(...tiles.map(([name,value,detail]) => {
+    const tile = document.createElement('div');
+    tile.className = 'metric';
+    const label = document.createElement('small');
+    label.textContent = name;
+    const stat = document.createElement('strong');
+    stat.textContent = value;
+    const note = document.createElement('small');
+    note.textContent = detail;
+    tile.append(label,stat,note);
+    return tile;
+  }));
+}
+function measurementTargets(pitch,sessionPitches,goal) {
+  const rows = pitch.videoAnalysis?.measures ?? [];
+  const unavailable = message => ({message,ranges:rows.map(() => null)});
+  if (!rows.length) return unavailable('');
+  if (!pitch.cameraView || !pitch.throwingHand || !number(pitch.targetX) || !number(pitch.targetY)) {
+    return unavailable('Set the camera view, throwing hand, and intended target to find comparable pitches.');
+  }
+  const velocity = goal === 'velocity';
+  const matches = sessionPitches.filter(candidate =>
+    candidate !== pitch && candidate.condition !== 'cue' && candidate.cameraView === pitch.cameraView &&
+    candidate.throwingHand === pitch.throwingHand && pitchTypeOf(candidate) === pitchTypeOf(pitch) &&
+    candidate.targetX === pitch.targetX && candidate.targetY === pitch.targetY && candidate.videoAnalysis?.measures?.length
+  ).map(candidate => ({rows:candidate.videoAnalysis.measures,...measure(candidate)}))
+    .filter(candidate => number(candidate.missIn) && (!velocity || candidate.mph > 0));
+  const minimum = 8;
+  if (matches.length < minimum) {
+    return unavailable('Target ranges need ' + minimum + ' other analyzed pitches with the same pitch type, view, and target. ' +
+      matches.length + ' qualify. Log actual location' + (velocity ? ' and radar velocity' : '') + ' on each reference pitch.');
+  }
+  const typicalMiss = median(matches.map(candidate => candidate.missIn));
+  const eligible = velocity ? matches.filter(candidate => candidate.missIn <= typicalMiss) : matches;
+  const rank = velocity ? (a,b) => b.mph-a.mph : (a,b) => a.missIn-b.missIn;
+  const best = [...eligible].sort(rank).slice(0,Math.floor(matches.length/2));
+  const typicalSpeed = velocity ? median(matches.map(candidate => candidate.mph)) : null;
+  const better = best.filter(candidate => velocity ? candidate.mph > typicalSpeed : candidate.missIn < typicalMiss);
+  if (better.length < 4) return unavailable('Fewer than four comparable pitches clearly beat the session median for this goal. Add more pitches before setting targets.');
+  const quantile = (sorted,fraction) => {
+    const index = (sorted.length-1)*fraction;
+    const start = Math.floor(index);
+    return sorted[start] + (sorted[Math.ceil(index)]-sorted[start])*(index-start);
+  };
+  const ranges = rows.map(row => {
+    const values = better.map(candidate => candidate.rows.find(reference =>
+      reference.event === row.event && reference.label === row.label && reference.unit === row.unit)?.value
+    ).filter(number).sort((a,b) => a-b);
+    return values.length < 4 ? null : {low:quantile(values,.25),high:quantile(values,.75),count:values.length};
+  });
+  if (!ranges.some(Boolean)) return unavailable('The better pitches lack four usable readings for any one measurement. Match the marked events across clips.');
+  return {
+    message:'Suggested targets show the middle half of your readings on ' + better.length +
+      (velocity ? ' faster pitches with miss distance at or below your median.' : ' better located pitches.') +
+      ' Use the same camera placement and recording speed, then retest one change at a time.',
+    ranges
+  };
+}
+
+function recommend(pitches, goal, pitchType = defaultPitchType) {
+  const velocity = goal === 'velocity';
+  const groups = new Map();
+  pitches.forEach((pitch,index) => {
+    if (pitchTypeOf(pitch) !== pitchType || pitch.condition === 'cue') return;
+    const result = measure(pitch);
+    if (!number(result.timingMs) || result.timingMs <= 0 || !number(result.missIn) || (velocity && !(result.mph > 0))) return;
+    const key = JSON.stringify([pitch.targetX,pitch.targetY]);
+    if (!groups.has(key)) groups.set(key,[]);
+    groups.get(key).push({...result,index});
+  });
+  const samples = [...groups.values()].sort((a,b) => b.length-a.length)[0] ?? [];
+  if (samples.length < minimumPitches) {
+    return {goal,state:'needsData',count:samples.length,title:'Build your baseline',
+      evidence:samples.length + ' of ' + minimumPitches + ' comparable pitches logged for ' + pitchType + '.',
+      next:'Mark foot contact and release, then enter the target and actual location for each pitch.' +
+        (velocity ? ' Add radar velocity for each pitch.' : '')};
+  }
+  const key = velocity ? 'mph' : 'missIn';
+  const ranked = [...samples].sort((a,b) => velocity ? b[key]-a[key] : a[key]-b[key]);
+  const groupSize = Math.floor(ranked.length/2);
+  const best = ranked.slice(0,groupSize);
+  const other = ranked.slice(-groupSize);
+  const typical = (group,metric) => median(group.map(pitch => pitch[metric]));
+  const bestTiming = typical(best,'timingMs');
+  const otherTiming = typical(other,'timingMs');
+  const bestMiss = typical(best,'missIn');
+  const otherMiss = typical(other,'missIn');
+  const bestOutcome = typical(best,key);
+  const otherOutcome = typical(other,key);
+  const outcomeGap = velocity ? bestOutcome-otherOutcome : otherOutcome-bestOutcome;
+  const unit = velocity ? 'mph' : 'in';
+  const evidence = groupSize + ' pitches per group. ' + (velocity ? 'Median radar velocity ' : 'Median target miss ') +
+    format(bestOutcome,unit) + ' versus ' + format(otherOutcome,unit) + '. Median contact to release ' +
+    format(bestTiming,'ms') + ' versus ' + format(otherTiming,'ms') + ' of video time.';
+  const base = {goal,count:samples.length,evidence};
+  if (velocity && bestMiss > otherMiss) {
+    return {...base,state:'tradeoff',title:'Faster pitches missed by more',
+      next:'Median miss was ' + format(bestMiss,'in') + ' on faster pitches and ' + format(otherMiss,'in') +
+      ' on slower pitches. Repeat the session and look for a velocity gain with command at least as good.'};
+  }
+  const direction = Math.sign(otherTiming-bestTiming);
+  const consistent = best.filter(pitch => (otherTiming-pitch.timingMs)*direction > 0).length >= Math.ceil(groupSize*.75);
+  if (outcomeGap < (velocity ? 1 : 2) || ranked[groupSize-1][key] === other[0][key] ||
+      Math.abs(bestTiming-otherTiming) < 30 || !consistent) {
+    return {...base,state:'noClearPattern',title:'Keep your current delivery for now',
+      next:'The session did not show a clear timing pattern worth testing. Collect another set at the same target and compare again.'};
+  }
+  const closest = group => [...group].sort((a,b) =>
+    Math.abs(a.timingMs-typical(group,'timingMs'))-Math.abs(b.timingMs-typical(group,'timingMs')))[0].index;
+  const cue = 'Your better pitches had a ' + (bestTiming < otherTiming ? 'shorter' : 'longer') +
+    ' interval from front foot contact to release. Watch those clips and rehearse that rhythm at your normal effort.';
+  return {...base,state:'testCue',title:'Test the rhythm from your better pitches',
+    cue,
+    review:[closest(best),closest(other)],
+    next:cue + ' In your next bullpen, alternate sets with your usual delivery and with the cue. Compare target miss' +
+      (velocity ? ' and radar velocity' : '') + ' at the same target. This is a pattern from your session to test.'};
+}
+
+function compareTrial(pitches,pitchType,goal) {
+  const groups = new Map();
+  for (const pitch of pitches) {
+    if (pitchTypeOf(pitch) !== pitchType || !['baseline','cue'].includes(pitch.condition)) continue;
+    const result = measure(pitch);
+    if (!number(result.missIn) || (goal === 'velocity' && !(result.mph > 0))) continue;
+    const key = JSON.stringify([pitch.targetX,pitch.targetY]);
+    if (!groups.has(key)) groups.set(key,{baseline:[],cue:[]});
+    groups.get(key)[pitch.condition].push(result);
+  }
+  const group = [...groups.values()].sort((a,b) =>
+    Math.min(b.baseline.length,b.cue.length) - Math.min(a.baseline.length,a.cue.length) ||
+    b.baseline.length + b.cue.length - a.baseline.length - a.cue.length)[0];
+  const baselineCount = group?.baseline.length ?? 0;
+  const cueCount = group?.cue.length ?? 0;
+  const minimum = 5;
+  if (Math.min(baselineCount,cueCount) < minimum) {
+    return {state:'needsData',baselineCount,cueCount,title:'Log at least five pitches per condition',
+      detail:baselineCount + ' normal and ' + cueCount + ' cue pitches scored at one target.' +
+        (goal === 'velocity' ? ' Radar readings are required for this goal.' : '')};
+  }
+  const summarize = pitches => {
+    const radar = pitches.filter(pitch => pitch.mph > 0).map(pitch => pitch.mph);
+    return {count:pitches.length,missIn:median(pitches.map(pitch => pitch.missIn)),
+      mph:radar.length === pitches.length ? median(radar) : null};
+  };
+  const baseline = summarize(group.baseline);
+  const cue = summarize(group.cue);
+  const missDelta = cue.missIn-baseline.missIn;
+  const mphDelta = number(cue.mph) && number(baseline.mph) ? cue.mph-baseline.mph : null;
+  const improved = goal === 'velocity' ? mphDelta >= 1 && missDelta <= 0 : missDelta <= -2;
+  const tradeoff = (mphDelta >= 1 && missDelta > 0) || (number(mphDelta) && mphDelta <= -1 && missDelta <= -2);
+  return {state:tradeoff?'tradeoff':improved?'retest':'inconclusive',baseline,cue,missDelta,mphDelta,
+    title:tradeoff?'Velocity and command moved in opposite directions':improved?'Retest this cue in another bullpen':'No clear improvement in this trial',
+    detail:'Median target miss: ' + format(baseline.missIn,'in') + ' normal vs. ' + format(cue.missIn,'in') + ' with the cue. ' +
+      'Median radar: ' + format(baseline.mph,'mph') + ' normal vs. ' + format(cue.mph,'mph') +
+      ' with the cue. Sample: ' + baseline.count + ' normal and ' + cue.count + ' cue pitches.'};
+}
+
+function showRecommendation() {
+  showPitcherPerformance();
+  showTrainingPlan();
+  const goal = get('goal').value;
+  const pitchType = get('analysis-type').value;
+  const result = recommend(pitches,goal,pitchType);
+  const trial = compareTrial(pitches,pitchType,goal);
+  const trialTitle = document.createElement('strong');
+  trialTitle.textContent = trial.title;
+  const trialDetail = document.createElement('p');
+  trialDetail.textContent = trial.detail;
+  get('trial-result').replaceChildren(trialTitle,trialDetail);
+  const title = document.createElement('h4');
+  title.textContent = result.title;
+  const evidence = document.createElement('p');
+  evidence.textContent = result.evidence;
+  const next = document.createElement('p');
+  next.textContent = result.next;
+  const panel = get('recommendation');
+  panel.replaceChildren(title,evidence,next);
+  if (result.review) {
+    const button = document.createElement('button');
+    button.textContent = 'Compare pitches ' + result.review.map(index => index+1).join(' and ');
+    button.onclick = () => {
+      for (const [slot,index] of [['a',result.review[0]],['b',result.review[1]]]) {
+        get(slot).value = String(index);
+        renderSlot(slot);
+      }
+      get('review').scrollIntoView({block:'start'});
+    };
+    panel.append(button);
+  }
+  get('apply-cue').disabled = !result.cue;
+  get('apply-cue').onclick = () => {
+    if (!result.cue) return;
+    get('physical').value = result.cue;
+    markDirty();
+  };
+}
+for (const id of ['goal','analysis-type']) get(id).onchange = () => {
+  markDirty();
+  showRecommendation();
+  if (id === 'goal') for (const slot of Object.values(slots)) slot.renderAnalysis();
+};
+
+function renderPitchLog(data) {
+  get('log-empty').hidden = !!pitches.length;
+  get('log-table').hidden = !pitches.length;
+  get('pitch-rows').replaceChildren(...data.map((result,index) => {
+    const pitch = pitches[index];
+    const row = document.createElement('tr');
+    const title = document.createElement('th');
+    title.scope = 'row';
+    title.textContent = (index+1) + '. ' + pitch.name;
+    row.append(title);
+    for (const value of [pitchTypeOf(pitch),conditions[pitch.condition] || conditions.routine,pitch.cameraView || 'Unspecified',format(result.missIn,'in'),format(result.mph,'mph'),format(result.timingMs,'ms')]) {
+      const cell = document.createElement('td');
+      cell.textContent = value;
+      row.append(cell);
+    }
+    const actions = document.createElement('td');
+    for (const id of ['a','b']) {
+      const button = document.createElement('button');
+      button.textContent = id.toUpperCase();
+      button.setAttribute('aria-label','Review pitch ' + (index+1) + ' in clip ' + button.textContent);
+      button.onclick = () => {
+        get(id).value = String(index);
+        renderSlot(id);
+        slots[id].card.querySelector('video').scrollIntoView({block:'center'});
+      };
+      actions.append(button);
+    }
+    row.append(actions);
+    return row;
+  }));
+}
+
+function updateOverview(data = pitches.map(measure)) {
+  const speeds = data.map(pitch => pitch.mph).filter(mph => mph > 0);
+  get('overview-clips').textContent = pitches.length;
+  get('overview-command').textContent = data.filter(pitch => number(pitch.missIn)).length;
+  get('overview-velocity').textContent = speeds.length ? format(Math.max(...speeds),'mph') : '-';
+  get('overview-analyzed').textContent = pitches.filter(pitch => pitch.videoAnalysis).length;
+}
+
+function refresh() {
+  reviewReadiness();
+  const data = pitches.map(measure);
+  updateOverview(data);
+  const definitions = [['missIn','Average target miss','in'],['mph','Average radar velocity','mph'],['timingMs','Average contact to release','ms']];
+  get('metrics').replaceChildren(...definitions.map(([key,label,unit]) => {
+    const values = data.map(pitch => pitch[key]).filter(number);
+    const tile = document.createElement('div');
+    tile.className = 'metric';
+    const title = document.createElement('small');
+    title.textContent = label;
+    const stat = document.createElement('strong');
+    stat.textContent = format(mean(values),unit);
+    const count = document.createElement('small');
+    count.textContent = values.length + ' of ' + pitches.length + ' pitches';
+    tile.append(title,stat,count);
+    return tile;
+  }));
+  Object.values(slots).forEach(slot => {
+    const {pitch,card} = slot;
+    const data = measure(pitch);
+    card.querySelector('.markers').textContent = eventKeys.map(key => eventLabels[key] + ' ' + (number(pitch[key]) ? pitch[key].toFixed(3) + ' s' : '-')).join('  �  ');
+    card.querySelector('.result').textContent = 'Target miss ' + format(data.missIn,'in') + '  �  Contact to release ' + format(data.timingMs,'ms');
+    for (const [key,input] of Object.entries(slot.inputs)) if (document.activeElement !== input) input.value = pitch[key] ?? '';
+    slot.view.value = pitch.cameraView ?? '';
+    slot.pitchType.value = pitchTypeOf(pitch);
+    slot.condition.value = pitch.condition || 'routine';
+    slot.throwingHand.value = pitch.throwingHand || '';
+    slot.renderAnalysis();
+  });
+  const scored = data.filter(pitch => number(pitch.missIn)).length;
+  get('next').textContent = scored >= 2 ? 'Compare a close pitch and a wide miss at the same marker. Record one cue, then repeat the target measurements in your next bullpen.' : 'Score at least two pitches to compare command. Mark both events on each clip to compare delivery timing.';
+  get('export').disabled = !pitches.length;
+  get('export-csv').disabled = !pitches.length;
+  get('print-report').disabled = !pitches.length;
+  renderPitchLog(data);
+  const pairReady = slots.a?.video.readyState >= 1 && slots.b?.video.readyState >= 1;
+  for (const id of ['play','pause']) get(id).disabled = !pairReady;
+  for (const id of ['contact','release']) get(id).disabled = !pairReady || !number(slots.a.pitch[id]) || !number(slots.b.pitch[id]);
+  showRecommendation();
+}
+function renderSlot(id) {
+  const pitch = pitches[Number(get(id).value)];
+  if (!pitch) return;
+  const card = get('clip').content.firstElementChild.cloneNode(true);
+  card.querySelector('h3').textContent = id.toUpperCase() + ' � ' + pitch.name;
+  const video = card.querySelector('video');
+  video.playbackRate = Number(get('playback-rate').value) || 1;
+  const tracking = addPoseTracking(card,video);
+  const analysis = addClipAnalysis(card,video,pitch);
+  const view = card.querySelector('.view');
+  const throwingHand = card.querySelector('.throwing-hand');
+  throwingHand.onchange = () => {
+    pitch.throwingHand = throwingHand.value;
+    delete pitch.videoAnalysis;
+    for (const slot of Object.values(slots)) if (slot.pitch === pitch) slot.cancelAnalysis();
+    markDirty();
+    refresh();
+  };
+  const pitchType = card.querySelector('.pitch-type');
+  const condition = card.querySelector('.condition');
+  populatePitchTypes(pitchType);
+  for (const [key,input] of [['pitchType',pitchType],['condition',condition]]) input.onchange = () => {
+    pitch[key] = input.value;
+    markDirty();
+    refresh();
+  };
+  view.onchange = () => {
+    pitch.cameraView = view.value;
+    markDirty();
+    refresh();
+  };
+  video.addEventListener('loadedmetadata', refresh);
+  video.addEventListener('error', () => get('status').textContent = 'This clip could not play. Try an MP4 encoded with H.264.');
+  video.src = pitch.url;
+  const fields = card.querySelector('.fields');
+  const inputs = {};
+  for (const [key,title] of Object.entries(labels)) {
+    const label = document.createElement('label');
+    label.textContent = title;
+    const input = document.createElement('input');
+    input.type = 'number';
+    input.step = 'any';
+    if (key === 'mph' || key === 'spinRpm') input.min = '0';
+    input.addEventListener('input', () => {
+      pitch[key] = input.validity.valid && number(input.valueAsNumber) ? input.valueAsNumber : null;
+      markDirty();
+      refresh();
+    });
+    inputs[key] = input;
+    label.append(input);
+    fields.append(label);
+  }
+  for (const button of card.querySelectorAll('[data-step]')) button.onclick = () => {
+    if (!number(video.duration)) return;
+    video.pause();
+    video.currentTime = Math.min(video.duration, Math.max(0, video.currentTime + Number(button.dataset.step)));
+  };
+  for (const button of card.querySelectorAll('[data-mark]')) button.onclick = () => {
+    if (video.readyState < 1 || video.seeking) return;
+    video.pause();
+    const time = video.currentTime;
+    const key = button.dataset.mark;
+    const eventIndex = eventKeys.indexOf(key);
+    if (eventKeys.some((other,index) => index !== eventIndex && number(pitch[other]) &&
+        (index < eventIndex ? pitch[other] >= time : pitch[other] <= time))) {
+      get('status').textContent = 'Mark events in order: peak leg lift, foot contact, ball release, then follow through.';
+      return;
+    }
+    pitch[key] = time;
+    delete pitch.videoAnalysis;
+    for (const slot of Object.values(slots)) if (slot.pitch === pitch) slot.cancelAnalysis();
+    markDirty();
+    get('status').textContent = 'Marker saved for clip ' + id.toUpperCase() + '.';
+    refresh();
+  };
+  const old = slots[id];
+  if (old) {
+    old.cancelAnalysis();
+    old.disposeTracking();
+    old.video.pause();
+    old.card.replaceWith(card);
+  } else get('review').append(card);
+  slots[id] = {card,video,pitch,inputs,view,pitchType,condition,throwingHand,...tracking,...analysis};
+  refresh();
+}
+get('files').onchange = event => {
+  const previous = pitches.length;
+  for (const file of event.target.files) pitches.push({
+    name:file.name,videoFile:file,url:URL.createObjectURL(file),
+    pitchType:get('upload-pitch-type').value,condition:get('upload-condition').value,
+    throwingHand:get('profile-hand').value
+  });
+  if (previous === pitches.length) return;
+  markDirty();
+  for (const id of ['a','b']) {
+    const select = get(id);
+    pitches.slice(previous).forEach((pitch,index) => select.add(new Option(pitch.name,previous + index)));
+  }
+  if (!previous) renderSlot('a');
+  if (!slots.b && pitches.length >= 2) {
+    get('b').value = '1';
+    renderSlot('b');
+  }
+  get('status').textContent = pitches.length + ' clips loaded.';
+  event.target.value = '';
+  refresh();
+};
+get('quick-upload').onclick = () => {
+  window.location.hash = 'clip-review';
+  get('files').click();
+};
+function updateNavigation() {
+  const current = window.location.hash || '#sessions';
+  for (const link of document.querySelectorAll('nav a')) {
+    if (link.getAttribute('href') === current) link.setAttribute('aria-current','location');
+    else link.removeAttribute('aria-current');
+  }
+}
+window.addEventListener('hashchange',updateNavigation);
+updateNavigation();
+for (const id of ['a','b']) get(id).onchange = () => renderSlot(id);
+get('playback-rate').onchange = () => {
+  for (const {video} of Object.values(slots)) video.playbackRate = Number(get('playback-rate').value);
+};
+for (const key of ['contact','release']) get(key).onclick = () => {
+  for (const {video,pitch} of Object.values(slots)) {
+    video.pause();
+    video.currentTime = pitch[key];
+  }
+  get('status').textContent = key === 'contact' ? 'Both clips aligned at foot contact.' : 'Both clips aligned at ball release.';
+};
+get('play').onclick = async () => {
+  const results = await Promise.allSettled(Object.values(slots).map(({video}) => video.play()));
+  if (results.some(result => result.status === 'rejected')) {
+    get('pause').click();
+    get('status').textContent = 'Both clips must be playable. Check each clip individually.';
+  }
+};
+get('pause').onclick = () => Object.values(slots).forEach(({video}) => video.pause());
+function exportData() {
+  const goal = get('goal').value;
+  const analysisPitchType = get('analysis-type').value;
+  const bullpen = readFields(contextFields);
+  const pitcherProfile = readFields(profileFields);
+  const trainingCheckIn = readFields(trainingFields);
+  return {
+    schemaVersion:5,pitcher:get('pitcher').value,label:get('session').value,exportedAt:new Date().toISOString(),goal,analysisPitchType,
+    pitcherProfile,bullpen,performance:pitcherPerformance(pitches,analysisPitchType,bullpen.targetRadiusIn),
+    trainingCheckIn,trainingPlan:buildTrainingPlan(pitcherProfile,bullpen,trainingCheckIn,goal),coachReview:readFields(coachFields),
+    coaching:{physical:get('physical').value,mental:get('mental').value,
+      recommendation:recommend(pitches,goal,analysisPitchType),trial:compareTrial(pitches,analysisPitchType,goal)},
+    pitches:pitches.map(pitch => {
+      const {url,videoFile,...record} = pitch;
+      const targets = pitch.videoAnalysis?.measures?.length ? measurementTargets(pitch,pitches,goal) : undefined;
+      return {...record,pitchType:pitchTypeOf(pitch),condition:pitch.condition || 'routine',...measure(pitch),measurementTargets:targets};
+    })
+  };
+}
+function download(content,type,name) {
+  const url = URL.createObjectURL(new Blob([content],{type}));
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = name;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(url),1000);
+}
+get('export').onclick = () => download(JSON.stringify(exportData(),null,2),'application/json','bullpen-baseline.json');
+function csvCell(value) {
+  if (typeof value === 'number') return String(value);
+  let text = String(value ?? '');
+  if (/^\s*[=+@-]/.test(text)) text = "'" + text;
+  return '"' + text.replaceAll('"','""') + '"';
+}
+get('export-csv').onclick = () => {
+  const data = exportData();
+  const columns = ['name','pitchType','condition','cameraView','throwingHand','targetX','targetY','actualX','actualY','missIn','mph',
+    'spinRpm','horizontalBreak','inducedVerticalBreak','lift','contact','release','finish','timingMs'];
+  const rows = [['pitcher','session',...columns],...data.pitches.map(pitch =>
+    [data.pitcher,data.label,...columns.map(key => pitch[key])])];
+  download(rows.map(row => row.map(csvCell).join(',')).join('\r\n'),'text/csv;charset=utf-8','bullpen-pitch-log.csv');
+};
+get('print-report').onclick = () => {
+  const {pitcher,label} = exportData();
+  get('report-session').textContent = [pitcher,label].filter(Boolean).join(' � ');
+  window.print();
+};
+
+function markDirty() {
+  editCount++;
+  dirty = true;
+  get('storage-status').textContent = 'Unsaved changes';
+}
+for (const id of ['pitcher','session','physical','mental',...Object.values(profileFields),...Object.values(contextFields),...Object.values(trainingFields),...Object.values(coachFields)]) {
+  get(id).addEventListener('input',markDirty);
+}
+for (const id of ['profile-age','context-count','context-effort',...Object.values(trainingFields)]) {
+  get(id).addEventListener('input',showTrainingPlan);
+}
+get('context-radius').addEventListener('input',showPitcherPerformance);
+get('profile-hand').onchange = () => {
+  const hand = get('profile-hand').value;
+  if (!hand) return;
+  for (const pitch of pitches) {
+    if (pitch.throwingHand) continue;
+    pitch.throwingHand = hand;
+    delete pitch.videoAnalysis;
+    for (const slot of Object.values(slots)) if (slot.pitch === pitch) slot.cancelAnalysis();
+  }
+  refresh();
+};
+window.addEventListener('beforeunload',event => {
+  if (dirty) {
+    event.preventDefault();
+    event.returnValue = true;
+  }
+});
+
+function openDatabase() {
+  database ??= new Promise((resolve,reject) => {
+    const request = indexedDB.open('bullpen-baseline',1);
+    request.onupgradeneeded = () => {
+      request.result.createObjectStore('sessions',{keyPath:'id'});
+      request.result.createObjectStore('videos',{keyPath:'id'});
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+    request.onblocked = () => reject(new Error('Close other open copies of the app and retry.'));
+  }).catch(error => {
+    database = null;
+    throw error;
+  });
+  return database;
+}
+const requestResult = request => new Promise((resolve,reject) => {
+  request.onsuccess = () => resolve(request.result);
+  request.onerror = () => reject(request.error);
+});
+
+async function listSessions() {
+  const db = await openDatabase();
+  const sessions = await requestResult(db.transaction('sessions').objectStore('sessions').getAll());
+  const picker = get('saved-sessions');
+  picker.replaceChildren(new Option('Choose a saved session',''));
+  sessions.sort((a,b) => b.revision.localeCompare(a.revision)).forEach(session => {
+    picker.add(new Option([session.pitcher,session.label,new Date(session.revision).toLocaleString()].filter(Boolean).join(' � '),session.id));
+  });
+  picker.value = sessionId || '';
+}
+
+function setStorageBusy(busy) {
+  storageBusy = busy;
+  for (const id of ['open-session','new-session','same-pitcher','save-session','files','quick-upload']) get(id).disabled = busy;
+}
+function canLeaveSession() {
+  return !dirty || window.confirm('Leave this session and discard unsaved changes?');
+}
+function resetSession(record, files = []) {
+  batchController?.abort();
+  for (const [id,slot] of Object.entries(slots)) {
+    slot.cancelAnalysis();
+    slot.disposeTracking();
+    slot.video.pause();
+    slot.card.remove();
+    delete slots[id];
+  }
+  for (const pitch of pitches) URL.revokeObjectURL(pitch.url);
+  pitches.length = 0;
+  sessionId = record?.id;
+  savedRevision = record?.revision;
+  for (const [id,value] of Object.entries({
+    pitcher:record?.pitcher,session:record?.label,physical:record?.coaching.physical,mental:record?.coaching.mental,
+    goal:record?.goal || 'command','analysis-type':record?.analysisPitchType || defaultPitchType,
+    'upload-pitch-type':defaultPitchType,'upload-condition':'routine'
+  })) get(id).value = value || '';
+  restoreFields(profileFields,record?.pitcherProfile);
+  restoreFields(contextFields,record?.bullpen);
+  restoreFields(trainingFields,record?.trainingCheckIn);
+  restoreFields(coachFields,record?.coachReview);
+  (record?.pitches ?? []).forEach((pitch,index) => pitches.push({...pitch,videoFile:files[index],url:URL.createObjectURL(files[index])}));
+  for (const id of ['a','b']) {
+    get(id).replaceChildren(...pitches.map((pitch,index) => new Option(pitch.name,index)));
+    if (pitches.length) {
+      get(id).value = id === 'b' && pitches.length > 1 ? '1' : '0';
+      if (id === 'a' || pitches.length > 1) renderSlot(id);
+    }
+  }
+  get('saved-sessions').value = sessionId || '';
+  get('status').textContent = '';
+  get('report-session').textContent = '';
+  dirty = false;
+  refresh();
+}
+get('new-session').onclick = () => {
+  if (storageBusy || !canLeaveSession()) return;
+  resetSession();
+  get('storage-status').textContent = 'New session';
+};
+get('same-pitcher').onclick = () => {
+  if (storageBusy || !canLeaveSession()) return;
+  const name = get('pitcher').value;
+  const profile = readFields(profileFields);
+  resetSession();
+  get('pitcher').value = name;
+  restoreFields(profileFields,profile);
+  get('storage-status').textContent = 'New bullpen with the same pitcher profile.';
+};
+get('open-session').onclick = async () => {
+  const id = get('saved-sessions').value;
+  if (storageBusy || !id || !canLeaveSession()) return;
+  const originalEdits = editCount;
+  setStorageBusy(true);
+  try {
+    const db = await openDatabase();
+    const tx = db.transaction(['sessions','videos']);
+    const [record,videos] = await Promise.all([
+      requestResult(tx.objectStore('sessions').get(id)),requestResult(tx.objectStore('videos').get(id))
+    ]);
+    if (!record || !videos || videos.files.length !== record.pitches.length) throw new Error('The saved clips are unavailable.');
+    if (originalEdits !== editCount && !canLeaveSession()) return;
+    resetSession(record,videos.files);
+    get('storage-status').textContent = 'Saved session opened.';
+  } catch (error) {
+    get('storage-status').textContent = 'Could not open session. ' + error.message;
+  } finally {
+    setStorageBusy(false);
+  }
+};
+get('save-session').onclick = async () => {
+  if (storageBusy) return;
+  if ([...Object.values(profileFields),...Object.values(contextFields),...Object.values(trainingFields)].some(id => !get(id).reportValidity())) return;
+  if (!pitches.length || !get('session').value.trim()) {
+    get('storage-status').textContent = 'Name the session and add at least one clip before saving.';
+    return;
+  }
+  const data = exportData();
+  const files = pitches.map(pitch => pitch.videoFile);
+  const originalEdits = editCount;
+  setStorageBusy(true);
+  try {
+    const record = {...data,id:sessionId || crypto.randomUUID(),revision:new Date().toISOString()};
+    const db = await openDatabase();
+    await new Promise((resolve,reject) => {
+      const tx = db.transaction(['sessions','videos'],'readwrite');
+      const sessions = tx.objectStore('sessions');
+      const lookup = sessions.get(record.id);
+      let conflict = false;
+      tx.oncomplete = resolve;
+      tx.onabort = () => reject(conflict ? new Error('A newer version was saved in another tab. Export your changes before reopening that session.') : tx.error);
+      lookup.onsuccess = () => {
+        if (lookup.result?.revision !== savedRevision) {
+          conflict = true;
+          tx.abort();
+          return;
+        }
+        sessions.put(record);
+        tx.objectStore('videos').put({id:record.id,files});
+      };
+    });
+    sessionId = record.id;
+    savedRevision = record.revision;
+    dirty = originalEdits !== editCount;
+    get('storage-status').textContent = dirty ? 'Session saved. There are newer unsaved changes.' : 'Session and clips saved on this device.';
+    await listSessions().catch(() => {
+      get('storage-status').textContent += ' The session list could not refresh.';
+    });
+  } catch (error) {
+    dirty = true;
+    get('storage-status').textContent = 'Could not save session. ' + (error?.message || 'Browser storage may be full or unavailable.');
+  } finally {
+    setStorageBusy(false);
+  }
+};
+listSessions().catch(() => {
+  get('storage-status').textContent = 'Saved sessions are unavailable in this browser context. You can still export your measurements.';
+});
+refresh();
+</script>
+</body>
+</html>
+
+
+
