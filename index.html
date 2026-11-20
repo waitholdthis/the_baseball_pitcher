@@ -171,7 +171,7 @@ td button { min-height: 32px; margin-right: 4px; padding: 3px 8px; }
 <div class="overview" aria-label="Current bullpen overview">
 <div><span>Clips loaded</span><strong id="overview-clips">0</strong></div>
 <div><span>Scored for command</span><strong id="overview-command">0</strong></div>
-<div><span>Peak radar velocity</span><strong id="overview-velocity">-</strong></div>
+<div><span>Peak radar velocity</span><strong id="overview-velocity">—</strong></div>
 <div><span>Videos analyzed</span><strong id="overview-analyzed">0</strong></div>
 </div>
 <section id="sessions">
@@ -183,7 +183,7 @@ td button { min-height: 32px; margin-right: 4px; padding: 3px 8px; }
 </section>
 <section id="pitcher-profile">
 <h2>Pitcher profile</h2>
-<p>Use the profile to give each bullpen context. Mechanics targets are based on this pitcher's measured results.</p>
+<p>Use the profile to give each bullpen context. Mechanics targets are based on this pitcher’s measured results.</p>
 <div class="fields">
 <label>Height (inches)<input id="profile-height" type="number" min="1" step="0.1" placeholder="72 = 6 ft"></label>
 <label>Weight (lb)<input id="profile-weight" type="number" min="1" step="0.1"></label>
@@ -250,9 +250,9 @@ td button { min-height: 32px; margin-right: 4px; padding: 3px 8px; }
 <label>How does the pitcher feel today?<select id="training-readiness"><option value="">Choose readiness</option><option value="normal">Feels normal, no throwing pain</option><option value="fatigued">Unusually tired or sore, no throwing pain</option><option value="pain">Pain with throwing</option></select></label>
 <label>Pitches in last game (optional)<input id="training-game-pitches" type="number" min="1" step="1"></label>
 </div>
-<p>Enter game pitches separately from bullpen workload. Use the same day's combined game count if the pitcher appeared in multiple games.</p>
+<p>Enter game pitches separately from bullpen workload. Use the same day’s combined game count if the pitcher appeared in multiple games.</p>
 <div id="training-plan" class="metric" aria-live="polite"></div>
-<p><a href="https://www.mlb.com/pitch-smart/pitching-guidelines" target="_blank" rel="noopener">MLB Pitch Smart</a> � <a href="https://orthoinfo.aaos.org/en/recovery/rotator-cuff-and-shoulder-conditioning-program/" target="_blank" rel="noopener">AAOS shoulder conditioning</a> � <a href="https://www.cdc.gov/sleep/about/" target="_blank" rel="noopener">CDC sleep guidance</a></p>
+<p><a href="https://www.mlb.com/pitch-smart/pitching-guidelines" target="_blank" rel="noopener">MLB Pitch Smart</a> · <a href="https://orthoinfo.aaos.org/en/recovery/rotator-cuff-and-shoulder-conditioning-program/" target="_blank" rel="noopener">AAOS shoulder conditioning</a> · <a href="https://www.cdc.gov/sleep/about/" target="_blank" rel="noopener">CDC sleep guidance</a></p>
 </section>
 </main>
 </div>
@@ -262,7 +262,7 @@ td button { min-height: 32px; margin-right: 4px; padding: 3px 8px; }
 <div class="row"><button data-pose aria-pressed="false">Track body motion</button></div>
 <p class="tracking" aria-live="polite">Body tracking needs internet access to load the model. Pitch video is processed in your browser.</p>
 <div class="metric"><h4>Video analysis</h4><p class="clip-analysis" role="status">Play the clip to the end for automatic feedback, or run analysis now.</p><progress class="analysis-progress" aria-label="Video analysis progress" max="100" hidden></progress><div class="row"><button class="primary" data-analyze>Run analysis</button><button data-cancel-analysis hidden>Cancel</button><button data-review-frame hidden>Review frame</button></div><p class="measurement-targets" hidden></p><ul class="analysis-measures" hidden></ul>
-<details><summary>How to interpret these measurements</summary><p>Angles and distances are projections from this camera. Compare the same pitcher, pitch type, camera placement and recording speed. Foot spacing is not calibrated stride length. Shoulder and hip lines do not measure hip-shoulder separation. This workflow does not measure shoulder rotation, joint loading, ground forces, or ball speed.</p><p><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9950989/" target="_blank" rel="noopener">Pitching biomechanics reference</a> � <a href="https://github.com/drivelineresearch/openbiomechanics" target="_blank" rel="noopener">Motion capture research dataset</a></p></details></div>
+<details><summary>How to interpret these measurements</summary><p>Angles and distances are projections from this camera. Compare the same pitcher, pitch type, camera placement and recording speed. Foot spacing is not calibrated stride length. Shoulder and hip lines do not measure hip–shoulder separation. This workflow does not measure shoulder rotation, joint loading, ground forces, or ball speed.</p><p><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC9950989/" target="_blank" rel="noopener">Pitching biomechanics reference</a> · <a href="https://github.com/drivelineresearch/openbiomechanics" target="_blank" rel="noopener">Motion capture research dataset</a></p></details></div>
 <div class="fields"><label>Camera view<select class="view"><option value="">Unspecified</option><option>Side</option><option>Front (catcher view)</option><option>Rear (pitcher view)</option><option>Oblique</option><option>Elevated or other</option></select></label><label>Throwing hand<select class="throwing-hand"><option value="">Choose hand</option><option value="right">Right</option><option value="left">Left</option></select></label></div>
 <div class="fields"><label>Pitch type<select class="pitch-type"></select></label><label>Trial condition<select class="condition"><option value="routine">Routine bullpen</option><option value="baseline">Normal delivery</option><option value="cue">Testing the cue</option></select></label></div>
 <div class="row"><button data-step="-0.01">Back 0.01 s</button><button data-step="0.01">Forward 0.01 s</button></div>
@@ -346,7 +346,7 @@ async function selectPoseModel(name, getSource) {
   input.disabled = true;
   get('model-full').disabled = true;
   get('model-reset').disabled = true;
-  get('model-status').textContent = 'Loading ' + name + '.';
+  get('model-status').textContent = 'Loading ' + name + '…';
   try {
     const tracker = await createPoseTracker(await getSource());
     setPoseModel(tracker,name);
@@ -466,7 +466,7 @@ function addPoseTracking(card, video) {
     }
     button.disabled = true;
     const current = ++generation;
-    setStatus('Loading body tracking model.');
+    setStatus('Loading body tracking model…');
     try {
       const model = await loadPoseModel();
       if (disposed || current !== generation) return;
@@ -551,7 +551,7 @@ get('analyze-selected').onclick = async () => {
       try {
         const result = await scanClip({...pitch},controller.signal,(done,total) => {
           get('batch-status').textContent = 'Clip ' + (completed+failed+1) + ' of ' + selected.length +
-            ' � ' + done + ' of ' + total + ' frames';
+            ' · ' + done + ' of ' + total + ' frames';
         });
         if (controller.signal.aborted || !pitches.includes(pitch)) break;
         pitch.videoAnalysis = result;
@@ -614,7 +614,7 @@ function buildTrainingPlan(profile,bullpen,checkIn,goal) {
     add('Game pitching rest',gameRest.overLimit ?
       'The game count exceeds the Pitch Smart daily maximum of ' + gameRest.maximum + ' for this age. Review the workload with the coach or athletic trainer before another outing.' :
       'MLB Pitch Smart lists ' + gameRest.days + ' day' + (gameRest.days === 1 ? '' : 's') +
-      ' of rest for this age and game count. Follow stricter league or team rules and review the pitcher's readiness separately.');
+      ' of rest for this age and game count. Follow stricter league or team rules and review the pitcher’s readiness separately.');
   } else {
     add('Throwing schedule','Review recent outings, bullpen volume, and recovery with your coach or athletic trainer. This app calculates game rest only for ages 7 to 18 when a game count is entered.');
   }
@@ -644,7 +644,7 @@ function populatePitchTypes(select) {
 }
 for (const id of ['analysis-type','upload-pitch-type']) populatePitchTypes(get(id));
 const number = value => Number.isFinite(value);
-const format = (value, unit) => number(value) ? value.toFixed(1) + ' ' + unit : '-';
+const format = (value, unit) => number(value) ? value.toFixed(1) + ' ' + unit : '—';
 const mean = values => values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : null;
 function measure(pitch) {
   const {contact, release, targetX, targetY, actualX, actualY, mph} = pitch;
@@ -712,12 +712,12 @@ function describeClip(samples,pitch) {
     if (number(value)) measures.push({event,label,value,unit});
   };
   const definitions = {
-    lift:[['kneeLift','Lead knee height relative to hips','x torso']],
-    contact:[['footSpacing','Projected ankle spacing','x torso'],['kneeFlexion','Lead knee flexion','�'],
-      ['elbowFlexion','Throwing elbow flexion','�'],['upperArmAngle','Upper arm angle to trunk','�'],['trunkLean','Trunk lean from vertical','�']],
-    release:[['kneeFlexion','Lead knee flexion','�'],['elbowFlexion','Throwing elbow flexion','�'],
-      ['armLine','Shoulder to wrist line above horizontal','�'],['trunkLean','Trunk lean from vertical','�']],
-    finish:[['trunkLean','Trunk lean from vertical','�'],['kneeFlexion','Lead knee flexion','�']]
+    lift:[['kneeLift','Lead knee height relative to hips','× torso']],
+    contact:[['footSpacing','Projected ankle spacing','× torso'],['kneeFlexion','Lead knee flexion','°'],
+      ['elbowFlexion','Throwing elbow flexion','°'],['upperArmAngle','Upper arm angle to trunk','°'],['trunkLean','Trunk lean from vertical','°']],
+    release:[['kneeFlexion','Lead knee flexion','°'],['elbowFlexion','Throwing elbow flexion','°'],
+      ['armLine','Shoulder to wrist line above horizontal','°'],['trunkLean','Trunk lean from vertical','°']],
+    finish:[['trunkLean','Trunk lean from vertical','°'],['kneeFlexion','Lead knee flexion','°']]
   };
   for (const event of eventKeys) {
     const frame = at(event);
@@ -729,9 +729,9 @@ function describeClip(samples,pitch) {
   if (before && after) {
     const event = 'Contact to release';
     add(event,'Elapsed video time',(after.time-before.time)*1000,'ms');
-    add(event,'Head shift relative to hips',Math.abs(after.headOffset-before.headOffset),'x torso');
-    add(event,'Lead knee extension',before.kneeFlexion-after.kneeFlexion,'�');
-    add(event,'Throwing elbow extension',before.elbowFlexion-after.elbowFlexion,'�');
+    add(event,'Head shift relative to hips',Math.abs(after.headOffset-before.headOffset),'× torso');
+    add(event,'Lead knee extension',before.kneeFlexion-after.kneeFlexion,'°');
+    add(event,'Throwing elbow extension',before.elbowFlexion-after.elbowFlexion,'°');
   }
   const action = measures.length ?
     'Compare the measured positions with a better executed pitch filmed from the same angle. Test one cue only if the pattern repeats.' :
@@ -820,9 +820,9 @@ function addClipAnalysis(card,video,pitch) {
     measures.hidden = !rows.length;
     measures.replaceChildren(...rows.map(({event,label,value,unit},index) => {
       const item = document.createElement('li');
-      const show = number => number.toFixed(unit === 'x torso' ? 2 : 1);
+      const show = number => number.toFixed(unit === '× torso' ? 2 : 1);
       const range = benchmark.ranges[index];
-      item.textContent = event + ' � ' + label + ': ' + show(value) + ' ' + unit +
+      item.textContent = event + ' · ' + label + ': ' + show(value) + ' ' + unit +
         (range ? ' | Target: ' + show(range.low) + ' to ' + show(range.high) + ' ' + unit : ' | Target: more data needed');
       return item;
     }));
@@ -841,11 +841,11 @@ function addClipAnalysis(card,video,pitch) {
     review.hidden = true;
     measures.hidden = true;
     targets.hidden = true;
-    status.textContent = 'Loading the tracking model and opening the clip.';
+    status.textContent = 'Loading the tracking model and opening the clip…';
     try {
       const result = await scanClip({...pitch},current.signal,(done,total) => {
         progress.value = 100*done/total;
-        status.textContent = 'Analyzing frame ' + done + ' of ' + total + '.';
+        status.textContent = 'Analyzing frame ' + done + ' of ' + total + '…';
       });
       if (current.signal.aborted) return;
       pitch.videoAnalysis = result;
@@ -907,12 +907,12 @@ function pitcherPerformance(pitches,pitchType,radius) {
 function showPitcherPerformance() {
   const {targetRadiusIn} = readFields(contextFields);
   const stats = pitcherPerformance(pitches,get('analysis-type').value,targetRadiusIn);
-  const rate = number(stats.inTarget) ? Math.round(100*stats.inTarget/stats.scored) + '%' : '-';
+  const rate = number(stats.inTarget) ? Math.round(100*stats.inTarget/stats.scored) + '%' : '—';
   const tiles = [
     ['Median target miss',format(stats.medianMissIn,'in'),stats.scored + ' of ' + stats.clips + ' clips scored'],
     ['Within target radius',rate,number(stats.inTarget) ?
       stats.inTarget + ' of ' + stats.scored + ' scored within ' + targetRadiusIn + ' in' : 'Set a target radius and score pitches'],
-    ['Median / peak velocity',number(stats.peakMph) ? stats.medianMph.toFixed(1) + ' / ' + format(stats.peakMph,'mph') : '-',
+    ['Median / peak velocity',number(stats.peakMph) ? stats.medianMph.toFixed(1) + ' / ' + format(stats.peakMph,'mph') : '—',
       stats.radarCount + ' radar readings']
   ];
   get('pitcher-performance').replaceChildren(...tiles.map(([name,value,detail]) => {
@@ -1153,7 +1153,7 @@ function updateOverview(data = pitches.map(measure)) {
   const speeds = data.map(pitch => pitch.mph).filter(mph => mph > 0);
   get('overview-clips').textContent = pitches.length;
   get('overview-command').textContent = data.filter(pitch => number(pitch.missIn)).length;
-  get('overview-velocity').textContent = speeds.length ? format(Math.max(...speeds),'mph') : '-';
+  get('overview-velocity').textContent = speeds.length ? format(Math.max(...speeds),'mph') : '—';
   get('overview-analyzed').textContent = pitches.filter(pitch => pitch.videoAnalysis).length;
 }
 
@@ -1178,8 +1178,8 @@ function refresh() {
   Object.values(slots).forEach(slot => {
     const {pitch,card} = slot;
     const data = measure(pitch);
-    card.querySelector('.markers').textContent = eventKeys.map(key => eventLabels[key] + ' ' + (number(pitch[key]) ? pitch[key].toFixed(3) + ' s' : '-')).join('  �  ');
-    card.querySelector('.result').textContent = 'Target miss ' + format(data.missIn,'in') + '  �  Contact to release ' + format(data.timingMs,'ms');
+    card.querySelector('.markers').textContent = eventKeys.map(key => eventLabels[key] + ' ' + (number(pitch[key]) ? pitch[key].toFixed(3) + ' s' : '—')).join('  ·  ');
+    card.querySelector('.result').textContent = 'Target miss ' + format(data.missIn,'in') + '  ·  Contact to release ' + format(data.timingMs,'ms');
     for (const [key,input] of Object.entries(slot.inputs)) if (document.activeElement !== input) input.value = pitch[key] ?? '';
     slot.view.value = pitch.cameraView ?? '';
     slot.pitchType.value = pitchTypeOf(pitch);
@@ -1202,7 +1202,7 @@ function renderSlot(id) {
   const pitch = pitches[Number(get(id).value)];
   if (!pitch) return;
   const card = get('clip').content.firstElementChild.cloneNode(true);
-  card.querySelector('h3').textContent = id.toUpperCase() + ' � ' + pitch.name;
+  card.querySelector('h3').textContent = id.toUpperCase() + ' · ' + pitch.name;
   const video = card.querySelector('video');
   video.playbackRate = Number(get('playback-rate').value) || 1;
   const tracking = addPoseTracking(card,video);
@@ -1381,7 +1381,7 @@ get('export-csv').onclick = () => {
 };
 get('print-report').onclick = () => {
   const {pitcher,label} = exportData();
-  get('report-session').textContent = [pitcher,label].filter(Boolean).join(' � ');
+  get('report-session').textContent = [pitcher,label].filter(Boolean).join(' · ');
   window.print();
 };
 
@@ -1442,7 +1442,7 @@ async function listSessions() {
   const picker = get('saved-sessions');
   picker.replaceChildren(new Option('Choose a saved session',''));
   sessions.sort((a,b) => b.revision.localeCompare(a.revision)).forEach(session => {
-    picker.add(new Option([session.pitcher,session.label,new Date(session.revision).toLocaleString()].filter(Boolean).join(' � '),session.id));
+    picker.add(new Option([session.pitcher,session.label,new Date(session.revision).toLocaleString()].filter(Boolean).join(' · '),session.id));
   });
   picker.value = sessionId || '';
 }
@@ -1577,6 +1577,5 @@ refresh();
 </script>
 </body>
 </html>
-
 
 
